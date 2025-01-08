@@ -538,5 +538,3 @@ def wood(goal, benchmark = False, verbose = False):
 				bushes_precise()
 
 wood(10000, True, False)
-
-# Test
