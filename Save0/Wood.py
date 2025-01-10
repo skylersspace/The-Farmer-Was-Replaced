@@ -1,9 +1,6 @@
 from Utility import *
 
 def wood(goal, benchmark = False, verbose = False):
-	HARVEST_LEVELS = (0, 1, 0, 0, 0,
-				   0, 0, 0, 0, 0,
-				   1000)
 	# Trees are worth 5 bushes when harvested
 	GROWTH_RATE_BUSH = (3.2, 4.8)
 	GROWTH_RATE_TREE = (5.6, 8.4)
@@ -11,8 +8,10 @@ def wood(goal, benchmark = False, verbose = False):
 	world_size = get_world_size()
 	full_world_size = pow(world_size, 2)
 
-	unit_harvest = HARVEST_LEVELS[num_unlocked(Unlocks.Trees)] / 100
+	unit_harvest = num_unlocked(Unlocks.Trees)
 	full_harvest_bush = unit_harvest * full_world_size
+	
+	# Tree harvest calculation
 	full_harvest_tree = 0
 	# Even distribution
 	if (world_size % 2 == 0):
@@ -498,16 +497,16 @@ def wood(goal, benchmark = False, verbose = False):
 			return (time_elapsed, ops_used, items_produced/time_elapsed, ops_used/items_produced)
 
 		func_list = [
-				# [bushes_normal, "Normal Bushes", 0],
+				[bushes_normal, "Normal Bushes", 0],
 				[bushes_clean, "Clean Bushes", 0],
 				[bushes_precise, "Precise Bushes", 0],
-				# [tree_normal, "Normal Trees", 0],
+				[tree_normal, "Normal Trees", 0],
 				[tree_clean, "Clean Trees", 0],
 				[tree_precise, "Precise Trees", 0],
-				# [bushes_water, "Watered Bushes", 0],
+				[bushes_water, "Watered Bushes", 0],
 				[bushes_water_clean, "Clean Watered Bushes", 0],
 				[bushes_water_precise, "Precise Watered Bushes", 0],
-				# [tree_water, "Watered Trees", 0],
+				[tree_water, "Watered Trees", 0],
 				[tree_water_clean, "Clean Watered Trees", 0],
 				[tree_water_precise, "Prcise Watered Trees", 0]
 			]
@@ -527,12 +526,12 @@ def wood(goal, benchmark = False, verbose = False):
 		wood_benchmark()
 	else:
 		if (num_unlocked(Unlocks.Trees) > 0):
-			if num_unlocked(Unlocks.Watering > 0):
+			if (num_unlocked(Unlocks.Watering) > 0):
 				tree_water_precise()
 			else:
 				tree_precise()
 		else:
-			if num_unlocked(Unlocks.Watering > 0):
+			if (num_unlocked(Unlocks.Watering) > 0):
 				bushes_water_precise()
 			else:
 				bushes_precise()

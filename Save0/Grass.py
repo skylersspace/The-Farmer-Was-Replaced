@@ -1,14 +1,14 @@
 from Utility import *
 
 def grass(goal, benchmark = False, verbose = False):
-	HARVEST_LEVELS = (0, 1, 0, 0, 0,
-				  		0, 0, 0, 0, 0,
-				 		0, 0, 0, 0, 1400)
+	HARVEST_LEVELS = (0, 100, 200, 300, 400,
+				  		500, 600, 700, 800, 900,
+				 		1000, 1100, 1200, 1300, 1400)
 	GROWTH_RATE_GRASS = (0.5, 0.5)
 	world_size = get_world_size()
 	full_world_size = pow(world_size, 2)
 	
-	unit_harvest = HARVEST_LEVELS[num_unlocked(Unlocks.Grass)] / 100
+	unit_harvest = num_unlocked(Unlocks.Grass)
 	full_harvest = unit_harvest * full_world_size
 
 	# Grass is consistent with no variability for full harvests.
