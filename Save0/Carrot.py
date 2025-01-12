@@ -4,7 +4,11 @@ def carrot(goal, benchmark = False, verbose = False):
 	GROWTH_RATE_CARROT = (4.8, 7.2)
 	world_size = get_world_size()
 	full_world_size = pow(world_size, 2)
+
 	# CALCULATE WATER LEVELS?
+	water_low = 0.22
+	water_high = 1.0
+
 	unit_harvest = num_unlocked(Unlocks.Carrots)
 	full_harvest = unit_harvest * full_world_size
 
@@ -28,12 +32,8 @@ def carrot(goal, benchmark = False, verbose = False):
 
 		# grass(amount * unit_harvest)
 		# wood(amount * unit_harvest)
-		starting_hay = num_items(Items.Hay)
-		starting_wood = num_items(Items.Wood)
-		quick_print("Requesting", amount, "hay and wood")
 		grass(amount)
 		wood(amount)
-		quick_print("Received", num_items(Items.Hay) - starting_hay, "hay and", num_items(Items.Wood) - starting_wood, "wood")
 
 	def carrot_normal():
 		mark = num_items(Items.Carrot) + goal
@@ -61,6 +61,157 @@ def carrot(goal, benchmark = False, verbose = False):
 
 		harvest_all_v2()
 
+	def carrot_precise():
+		#Same logic as grass, but slightly adapted for carrots
+		mark = num_items(Items.Carrot) + goal
+		carrot_cost(goal)
+
+		harvest_map = []
+		
+		# 1+ Rounds required
+		if ((num_items(Items.Carrot) + full_harvest) <= mark):
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					plant(Entities.Carrot)
+					move(North)
+				move(East)
+
+			# 2+ rounds are required loop
+			while ((num_items(Items.Carrot) + (full_harvest * 2)) <= mark):
+				for i in range (get_world_size()):
+					for j in range (get_world_size()):
+						if can_harvest():
+							harvest()
+						plant(Entities.Carrot)
+						move(North)
+					move(East)
+
+			# Will always run if at least one full harvest is required
+			# Replace grass as they are havested until the mark will be reached with what is planted
+			# If an even harvest is all that's required, nothing will be planted
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					if can_harvest():
+						harvest()
+					# If more than a full harvest is required, plant
+					if ((num_items(Items.Carrot) + full_harvest) <= mark):
+						harvest_map.append((get_pos_x(),get_pos_y()))
+						plant(Entities.Carrot)
+					move(North)
+				move(East)
+
+		# Plant and map partial field
+		else:
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					if (len(harvest_map) * unit_harvest + num_items(Items.Carrot)) < mark:
+						plant(Entities.Carrot)
+						harvest_map.append((get_pos_x(),get_pos_y()))
+						move(North)
+					else:
+						break
+				if (num_items(Items.Carrot) < mark):
+					move(East)
+				else:
+					break
+
+		# Harvest any remaining grass
+		while (len(harvest_map) > 0):
+			move_to(harvest_map[0][0], harvest_map[0][1])
+			if (can_harvest()):
+				harvest()
+			else:
+				harvest_map.append((get_pos_x(), get_pos_y()))
+			harvest_map.pop(0)
+
+	def carrot_water():
+		mark = num_items(Items.Carrot) + goal
+		carrot_cost(goal)
+		while (num_items(Items.Carrot) < mark):
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					if can_harvest():
+						harvest()
+					water_check(water_low, water_high)
+					plant(Entities.Carrot)
+					move(North)
+				move(East)
+
+	def carrot_water_clean():
+		mark = num_items(Items.Carrot) + goal
+		carrot_cost(goal)
+		while (num_items(Items.Carrot) < mark):
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					if can_harvest():
+						harvest()
+					water_check(water_low, water_high)
+					plant(Entities.Carrot)
+					move(North)
+				move(East)
+
+		harvest_all_v2()
+
+	def carrot_water_precise():
+		#Same logic as before, but water checks have been added
+		mark = num_items(Items.Carrot) + goal
+		carrot_cost(goal)
+
+		harvest_map = []
+		
+		if ((num_items(Items.Carrot) + full_harvest) <= mark):
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					water_check(water_low, water_high)
+					plant(Entities.Carrot)
+					move(North)
+				move(East)
+
+			while ((num_items(Items.Carrot) + (full_harvest * 2)) <= mark):
+				for i in range (get_world_size()):
+					for j in range (get_world_size()):
+						if can_harvest():
+							harvest()
+						water_check(water_low, water_high)
+						plant(Entities.Carrot)
+						move(North)
+					move(East)
+
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					if can_harvest():
+						harvest()
+
+					if ((num_items(Items.Carrot) + full_harvest) <= mark):
+						harvest_map.append((get_pos_x(),get_pos_y()))
+						water_check(water_low, water_high)
+						plant(Entities.Carrot)
+					move(North)
+				move(East)
+
+		else:
+			for i in range (get_world_size()):
+				for j in range (get_world_size()):
+					if (len(harvest_map) * unit_harvest + num_items(Items.Carrot)) < mark:
+						water_check(water_low, water_high)
+						plant(Entities.Carrot)
+						harvest_map.append((get_pos_x(),get_pos_y()))
+						move(North)
+					else:
+						break
+				if (num_items(Items.Carrot) < mark):
+					move(East)
+				else:
+					break
+
+		while (len(harvest_map) > 0):
+			move_to(harvest_map[0][0], harvest_map[0][1])
+			if (can_harvest()):
+				harvest()
+			else:
+				harvest_map.append((get_pos_x(), get_pos_y()))
+			harvest_map.pop(0)
+
 #Fertilizer is not necessary for this crop
 
 	def carrot_benchmark():
@@ -85,7 +236,7 @@ def carrot(goal, benchmark = False, verbose = False):
 			items_produced = num_items(Items.Carrot) - start_num
 
 			if verbose:
-				quick_print("Goal:", goal, "Items Produced:", items_produced)
+				quick_print("Goal:", goal, "Items Produced:", items_produced, "Difference:", items_produced - goal)
 				quick_print("Time Elapsed:", time_elapsed)
 				quick_print("     Items per second:", (items_produced / time_elapsed))
 				quick_print("Operations Used:", ops_used)
@@ -95,7 +246,11 @@ def carrot(goal, benchmark = False, verbose = False):
 
 		func_list = [
 				[carrot_normal, "Normal Carrots", 0],
-				[carrot_clean, "Clean Carrots", 0]
+				[carrot_clean, "Clean Carrots", 0],
+				[carrot_precise, "Precise Carrots", 0],
+				[carrot_water, "Water Carrots", 0],
+				[carrot_water_clean, "Precise Water Carrots", 0],
+				[carrot_water_precise, "Precise Water Carrots", 0]
 			]
 		
 		for i in func_list:
@@ -123,18 +278,5 @@ def carrot(goal, benchmark = False, verbose = False):
 		# 		quick_print("")
 		# 	else:
 		# 		quick_print("")
-
-#VERSION 3 - FASTEST
-def carrot_all_water():
-	for i in range (get_world_size()):
-		for j in range (get_world_size()):
-			while not can_harvest():
-				quick_print(get_water())
-				do_a_flip()
-			harvest()
-			water_check(.22, 1)
-			plant(Entities.Carrot)
-			move(North)
-		move(East)
 		
 carrot (5000, True, True)

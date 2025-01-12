@@ -149,7 +149,7 @@ def grass(goal, benchmark = False, verbose = False):
 			items_produced = num_items(Items.Hay) - start_num
 
 			if verbose:
-				quick_print("Goal:", goal, "Items Produced:", items_produced)
+				quick_print("Goal:", goal, "Items Produced:", items_produced, "Difference:", items_produced - goal)
 				quick_print("Time Elapsed:", time_elapsed)
 				quick_print("     Items per second:", (items_produced / time_elapsed))
 				quick_print("Operations Used:", ops_used)

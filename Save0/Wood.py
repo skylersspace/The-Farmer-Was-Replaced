@@ -4,7 +4,12 @@ def wood(goal, benchmark = False, verbose = False):
 	# Trees are worth 5 bushes when harvested
 	GROWTH_RATE_BUSH = (3.2, 4.8)
 	GROWTH_RATE_TREE = (5.6, 8.4)
+	
 	# CALCULATE WATER LEVELS?
+	bush_low = 0.8
+	tree_low = 0.29
+	water_high = 1.0
+
 	world_size = get_world_size()
 	full_world_size = pow(world_size, 2)
 
@@ -128,20 +133,20 @@ def wood(goal, benchmark = False, verbose = False):
 
 	# Harvest and plant bushes with water - Continuous
 	# Will leave full field behind
-	def bushes_water(water_low = 0.8, water_high = 1.0):
+	def bushes_water():
 		mark = num_items(Items.Wood) + goal
 		while ((num_items(Items.Wood)) < mark):
 			for i in range (get_world_size()):
 				for j in range (get_world_size()):
 					if can_harvest():
 						harvest()
-					water_check(water_low, water_high)
+					water_check(bush_low, water_high)
 					plant(Entities.Bush)
 					move(North)
 				move(East)
 
 	# Same as bushes_water, but will harvest everything once completed
-	def bushes_water_clean(water_low = 0.8, water_high = 1.0):
+	def bushes_water_clean():
 		mark = num_items(Items.Wood) + goal
 		while ((num_items(Items.Wood)) < mark):
 			for i in range (get_world_size()):
@@ -152,7 +157,7 @@ def wood(goal, benchmark = False, verbose = False):
 						break
 					if can_harvest():
 						harvest()
-					water_check(water_low, water_high)
+					water_check(bush_low, water_high)
 					plant(Entities.Bush)
 					move(North)
 				move(East)
@@ -160,7 +165,7 @@ def wood(goal, benchmark = False, verbose = False):
 		harvest_all_v2()
 	
 	# Only plant and harvest what is needed
-	def bushes_water_precise(water_low = 0.8, water_high = 1.0):
+	def bushes_water_precise():
 		mark = num_items(Items.Wood) + goal
 
 		harvest_map = []
@@ -169,7 +174,7 @@ def wood(goal, benchmark = False, verbose = False):
 		if ((num_items(Items.Wood) + full_harvest_bush) <= mark):
 			for i in range (get_world_size()):
 				for j in range (get_world_size()):
-					water_check(water_low, water_high)
+					water_check(bush_low, water_high)
 					plant(Entities.Bush)
 					move(North)
 				move(East)
@@ -180,7 +185,7 @@ def wood(goal, benchmark = False, verbose = False):
 					for j in range (get_world_size()):
 						if can_harvest():
 							harvest()
-						water_check(water_low, water_high)
+						water_check(bush_low, water_high)
 						plant(Entities.Bush)
 						move(North)
 					move(East)
@@ -193,7 +198,7 @@ def wood(goal, benchmark = False, verbose = False):
 					# If more than a full harvest is required, plant
 					if ((num_items(Items.Wood) + full_harvest_bush) <= mark):
 						harvest_map.append((get_pos_x(),get_pos_y()))
-						water_check(water_low, water_high)
+						water_check(bush_low, water_high)
 						plant(Entities.Bush)
 					move(North)
 				move(East)
@@ -203,7 +208,7 @@ def wood(goal, benchmark = False, verbose = False):
 			for i in range (get_world_size()):
 				for j in range (get_world_size()):
 					if (len(harvest_map) * unit_harvest + num_items(Items.Wood)) < mark:
-						water_check(water_low, water_high)
+						water_check(bush_low, water_high)
 						plant(Entities.Bush)
 						harvest_map.append((get_pos_x(),get_pos_y()))
 						move(North)
@@ -346,7 +351,7 @@ def wood(goal, benchmark = False, verbose = False):
 				harvest_map.append((get_pos_x(), get_pos_y()))
 			harvest_map.pop(0)
 
-	def tree_water(bush_low = 0.8, tree_low = .29, water_high = 1.0):
+	def tree_water():
 		mark = num_items(Items.Wood) + goal
 		while (num_items(Items.Wood) < mark):
 			for i in range (get_world_size()):
@@ -362,7 +367,7 @@ def wood(goal, benchmark = False, verbose = False):
 					move(North)
 				move(East)
 
-	def tree_water_clean(bush_low = 0.8, tree_low = .29, water_high = 1.0):
+	def tree_water_clean():
 		mark = num_items(Items.Wood) + goal
 		while (num_items(Items.Wood) < mark):
 			for i in range (get_world_size()):
@@ -384,7 +389,7 @@ def wood(goal, benchmark = False, verbose = False):
 
 		harvest_all_v2()
 
-	def tree_water_precise(bush_low = 0.8, tree_low = .29, water_high = 1.0):
+	def tree_water_precise():
 		mark = num_items(Items.Wood) + goal
 
 		harvest_map = []
@@ -489,7 +494,7 @@ def wood(goal, benchmark = False, verbose = False):
 			items_produced = num_items(Items.Wood) - start_num
 
 			if verbose:
-				quick_print("Goal:", goal, "Items Produced:", items_produced)
+				quick_print("Goal:", goal, "Items Produced:", items_produced, "Difference:", items_produced - goal)
 				quick_print("Time Elapsed:", time_elapsed)
 				quick_print("     Items per second:", (items_produced / time_elapsed))
 				quick_print("Operations Used:", ops_used)
