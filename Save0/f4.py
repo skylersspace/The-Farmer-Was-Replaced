@@ -7,7 +7,9 @@
 # clear_tilled()
 # reset()
 # carrot(5000, True, True)
-
+clear_tilled()
+reset()
+polyculture(5000, True, True)
 
 
 
