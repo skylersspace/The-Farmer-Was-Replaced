@@ -244,7 +244,7 @@ def carrot(goal, benchmark = False, verbose = False):
 				quick_print("Operations Used:", ops_used)
 				quick_print("     Operations per item:", (ops_used / items_produced))
 				quick_print("Excess - Hay:", num_items(Items.Hay) - start_hay, " - Wood:", num_items(Items.Wood) - start_wood)
-			return (time_elapsed, ops_used, items_produced/time_elapsed, ops_used/items_produced)
+			return (time_elapsed, items_produced, ops_used, items_produced/time_elapsed, ops_used/items_produced)
 
 		func_list = [
 				[carrot_normal, "Normal Carrots", 0],
@@ -262,9 +262,9 @@ def carrot(goal, benchmark = False, verbose = False):
 		quick_print("-----------------")
 		quick_print("Benchmark Results")
 		quick_print("-----------------")
-		quick_print("Name : Time : Operations: Items/Sec : Ops/Item")
+		quick_print("Name : Time : Items : Operations: Items/Sec : Ops/Item")
 		for i in func_list:
-			quick_print(i[1], ":", i[2][0], ":", i[2][1], ":", i[2][2], ":", i[2][3])
+			quick_print(i[1], ":", i[2][0], ":", i[2][1], ":", i[2][2], ":", i[2][3], ":", i[2][4])
 
 	if benchmark:
 		carrot_benchmark()
