@@ -152,6 +152,8 @@ def carrot(goal, benchmark = False, verbose = False):
 
 		harvest_all_v2()
 
+	# There seems to be an intermittent bug I can't replicate with logging
+	# A few crops are sometimes left unharvested
 	def carrot_water_precise():
 		#Same logic as before, but water checks have been added
 		mark = num_items(Items.Carrot) + goal
@@ -267,16 +269,9 @@ def carrot(goal, benchmark = False, verbose = False):
 	if benchmark:
 		carrot_benchmark()
 	else:
-		carrot_normal()
-		# if (num_unlocked(Unlocks.Watering) > 0):
-		# 	if num_unlocked(Unlocks.Watering > 0):
-		# 		quick_print("")
-		# 	else:
-		# 		quick_print("")
-		# else:
-		# 	if num_unlocked(Unlocks.Watering > 0):
-		# 		quick_print("")
-		# 	else:
-		# 		quick_print("")
+		if (num_unlocked(Unlocks.Watering) > 0):
+			carrot_water_precise()
+		else:
+			carrot_precise()
 		
 carrot (5000, True, True)
