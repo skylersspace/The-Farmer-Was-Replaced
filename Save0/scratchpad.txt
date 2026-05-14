@@ -1,0 +1,11 @@
+
+[[[(0,0)],(Entities.Tree,(1,9))],
+[[(1,0)],(Entities.Grass,(2,2))],
+[[(2,0)],(Entities.Bush,(3,2))],
+[[(3,0)],(Entities.Grass,(2,2))],
+[[(4,0)],(Entities.Grass,(5,8))],
+[[(5,0)],(Entities.Grass,(8,0))],
+[[(6,0)],(Entities.Grass,(5,8))],
+[[(7,0)],(Entities.Tree,(9,0))],
+[[(8,0)],(Entities.Grass,(9,8))],
+[[(9,0)],(Entities.Tree,(6,0))]]

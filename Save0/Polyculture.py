@@ -1,13 +1,15 @@
 from Utility import *
+from Grass import *
+from Wood import *
+#from Carrot import *
 
 def polyculture(goal, benchmark = False, verbose = False):
     world_size = get_world_size()
     # Polyculture gets the plant's companion, plants, and then harvests when a loop would ocurr.
     #   Provides a multiplier of (5 + unlock level)
 
+    # This algorithm uses a 'single thread' for the polyculture. Advancements would likely involve 'multi thread' polyculture
     def polyculture_normal():
-        reset()
-
         harvest_list = []
 
         # Plant list is a multi-dimensional array which tracks if something has been planted at that location
@@ -27,6 +29,12 @@ def polyculture(goal, benchmark = False, verbose = False):
         start_hay = num_items(Items.Hay)
         start_wood = num_items(Items.Wood)
         start_carrot = num_items(Items.Carrot)
+
+        #Aquiring initial component costs for carrots (25% of world size)
+        grass(round(world_size * .25) * num_unlocked(Unlocks.Carrots))
+        wood(round(world_size * .25) * num_unlocked(Unlocks.Carrots))
+        
+
         while(num_items(Items.Hay) < (start_hay + goal) or
          num_items(Items.Wood) < (start_wood + goal) or
          num_items(Items.Carrot) < (start_carrot + goal)):
@@ -46,23 +54,67 @@ def polyculture(goal, benchmark = False, verbose = False):
             else:
                 # Move the last element to the front, and don't touch it
                 harvest_list.insert(0, harvest_list[len(harvest_list) - 1])
+                harvest_list.pop()
                 while (len(harvest_list) > 1):
-                    move_to(harvest_list[1][0], harvest_list[1][1])
+                    x_curr = harvest_list[1][0]
+                    y_curr = harvest_list[1][1]
+                    move_to(x_curr, y_curr)
                     if (can_harvest()):
                         harvest()
+                        plant_list[x_curr] [y_curr] = True
                     else:
-                        harvest_list.append((get_pos_x(), get_pos_y()))
+                        harvest_list.append((x_curr, y_curr))
                     harvest_list.pop(1)
 
         # Final Harvest
         while (len(harvest_list) > 0):
-            move_to(harvest_list[0][0], harvest_list[0][1])
+            x_curr = harvest_list[0][0]
+            y_curr = harvest_list[0][1]
+            move_to(x_curr, y_curr)
             if (can_harvest()):
                 harvest()
             else:
-                harvest_list.append(get_pos_x(), get_pos_y())
+                harvest_list.append((x_curr, y_curr))
             harvest_list.pop(0)
 
+    def polyculture_multi():
+        plant_list = []
+        for i in range(world_size):
+            plant_list.append([])
+            for j in range(world_size):
+                plant_list[i].append(True)
+        
+        # Continue until all items are above the goal
+        start_hay = num_items(Items.Hay)
+        start_wood = num_items(Items.Wood)
+        start_carrot = num_items(Items.Carrot)
+
+        #Aquiring initial component costs for carrots (25% of world size)
+        grass(round(world_size * .25) * num_unlocked(Unlocks.Carrots))
+        wood(round(world_size * .25) * num_unlocked(Unlocks.Carrots))
+
+        # Master list contains the various 'threads' of polyculture
+        poly_list = []
+        for i in range(world_size):
+            #Go to and plant
+            move_to(i,0)
+            plant(Entities.Carrot)
+            #Mark off in plant list
+            plant_list[i] [0] = False
+            #Add current location to harvest map, and get next plant
+            poly_list.append([[(i,0)], get_companion()])
+        current = 0
+
+        while(num_items(Items.Hay) < (start_hay + goal) or
+         num_items(Items.Wood) < (start_wood + goal) or
+         num_items(Items.Carrot) < (start_carrot + goal)):
+
+            #BEGIN THE THREADS
+
+            next_crop = poly_list[current][1]
+            
+            quick_print (poly_list)
+    
     def polyculture_benchmark():
         def run_benchmark(tester):
             clear_tilled()
@@ -100,7 +152,8 @@ def polyculture(goal, benchmark = False, verbose = False):
             return (time_elapsed, items_produced, ops_used, items_produced/time_elapsed, ops_used/items_produced)
 
         func_list = [
-                [polyculture_normal, "Normal Polyculture", 0]
+                [polyculture_normal, "Normal Polyculture", 0],
+                [polyculture_multi, "Threaded Polyculture", 0]
                 # [polyculture_water, "Clean Carrots", 0]
             ]
         
@@ -116,7 +169,8 @@ def polyculture(goal, benchmark = False, verbose = False):
             quick_print(i[1], ":", i[2][0], ":", i[2][1], ":", i[2][2], ":", i[2][3], ":", i[2][4])
 
     if benchmark:
-        polyculture_benchmark()
+        #polyculture_benchmark()
+        polyculture_multi()
     else:
         if (num_unlocked(Unlocks.Watering) > 0):
             quick_print("")

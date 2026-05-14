@@ -1,3 +1,9 @@
+from Utility import *
+from Grass import *
+from Wood import *
+from Carrot import *
+from Polyculture import *
+
 # ------------------------------
 # GROW TIME DICTIONARY
 # ------------------------------
@@ -27,7 +33,7 @@ def convert_cost(entry):
     return entry_list
 
 item_cost = dict()
-item_cost[Items.Fertilizer] = [convert_cost(get_cost(Items.Fertilizer))]
+#item_cost[Items.Fertilizer] = [convert_cost(get_cost(Items.Fertilizer))]
 #Seeds have been removed, need to reassess their cost here if even needed
 
 #Example to get the first item for the cost of the carrot seed
@@ -36,14 +42,14 @@ item_cost[Items.Fertilizer] = [convert_cost(get_cost(Items.Fertilizer))]
 # ------------------------------
 # CROP FUNCTION DICTIONARY
 # ------------------------------
-crop_func = dict()
-crop_func[Items.Hay] = hay_farmer
-crop_func[Items.Wood] = hay_farmer
-crop_func[Items.Pumpkin] = hay_farmer
-crop_func[Items.Carrot] = hay_farmer
-crop_func[Items.Power] = hay_farmer
-crop_func[Items.Cactus] = hay_farmer
-crop_func[Items.Bone] = hay_farmer
+# crop_func = dict()
+# crop_func[Items.Hay] = hay_farmer
+# crop_func[Items.Wood] = hay_farmer
+# crop_func[Items.Pumpkin] = hay_farmer
+# crop_func[Items.Carrot] = hay_farmer
+# crop_func[Items.Power] = hay_farmer
+# crop_func[Items.Cactus] = hay_farmer
+# crop_func[Items.Bone] = hay_farmer
 
 
 
@@ -63,7 +69,8 @@ def replace_the_farmer():
         #I am operating under the assumption that initially, everything which is already unlocked is maxed out.
         if num_unlocked(i) == 0:
             #Add upgrade item, and it's next cost
-            upgrade_path.append((i, convert_cost(get_cost(i))))
+            #upgrade_path.append((i, convert_cost(get_cost(i))))
+            quick_print("")
     
     for i in upgrade_path:
         quick_print(i)
@@ -80,4 +87,11 @@ def replace_the_farmer():
 def completely_replace_the_farmer():
     timed_reset()
 
-replace_the_farmer()
+#replace_the_farmer()
+
+
+
+#ACTIVE TESTING AREA
+clear_tilled()
+reset()
+polyculture(5000, True, True)

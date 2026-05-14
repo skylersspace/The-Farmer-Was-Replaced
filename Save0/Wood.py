@@ -527,6 +527,7 @@ def wood(goal, benchmark = False, verbose = False):
 		for i in func_list:
 			quick_print(i[1], ":", i[2][0], ":", i[2][1], ":", i[2][2], ":", i[2][3], ":", i[2][4])
 
+	goal = round(goal * 1.01)
 	if benchmark:
 		wood_benchmark()
 	else:
@@ -541,4 +542,4 @@ def wood(goal, benchmark = False, verbose = False):
 			else:
 				bushes_precise()
 
-wood(10000, True, False)
+#wood(10000, True, False)

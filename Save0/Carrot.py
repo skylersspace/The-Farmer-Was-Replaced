@@ -1,4 +1,6 @@
 from Utility import *
+from Grass import *
+from Wood import *
 
 def carrot(goal, benchmark = False, verbose = False):
 	GROWTH_RATE_CARROT = (4.8, 7.2)
@@ -30,10 +32,10 @@ def carrot(goal, benchmark = False, verbose = False):
 		# -----INVESTIGATE-----
 		# I don't know what will happen if I try to plant, but there isn't enough resources
 
-		# grass(amount * unit_harvest)
-		# wood(amount * unit_harvest)
-		grass(amount)
-		wood(amount)
+		grass(amount * num_unlocked(Unlocks.Carrots))
+		wood(amount * num_unlocked(Unlocks.Carrots))
+		#grass(amount)
+		#wood(amount)
 
 	def carrot_normal():
 		mark = num_items(Items.Carrot) + goal
@@ -266,6 +268,7 @@ def carrot(goal, benchmark = False, verbose = False):
 		for i in func_list:
 			quick_print(i[1], ":", i[2][0], ":", i[2][1], ":", i[2][2], ":", i[2][3], ":", i[2][4])
 
+	goal = round(goal * 1.01)
 	if benchmark:
 		carrot_benchmark()
 	else:
@@ -274,4 +277,4 @@ def carrot(goal, benchmark = False, verbose = False):
 		else:
 			carrot_precise()
 		
-carrot (5000, True, True)
+#carrot (5000, True, True)

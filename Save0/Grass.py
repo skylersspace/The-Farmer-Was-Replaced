@@ -1,9 +1,6 @@
 from Utility import *
 
 def grass(goal, benchmark = False, verbose = False):
-	HARVEST_LEVELS = (0, 100, 200, 300, 400,
-				  		500, 600, 700, 800, 900,
-				 		1000, 1100, 1200, 1300, 1400)
 	GROWTH_RATE_GRASS = (0.5, 0.5)
 	world_size = get_world_size()
 	full_world_size = pow(world_size, 2)
@@ -128,6 +125,10 @@ def grass(goal, benchmark = False, verbose = False):
 			else:
 				harvest_map.append((get_pos_x(), get_pos_y()))
 			harvest_map.pop(0)
+
+		start = mark - goal
+		final = num_items(Items.Hay) - start
+		perc = (final / goal) * 100
 	
 	def grass_benchmark():
 		def run_benchmark(tester):
@@ -173,9 +174,14 @@ def grass(goal, benchmark = False, verbose = False):
 
 	#Full benchmark for all world sizes?
 
+	goal = round(goal * 1.01)
 	if benchmark:
 		grass_benchmark()
 	else:
+		
+		#grass_goal = num_items(Items.Hay) + goal
+		#Temporary bug fix. The precise version seems to consistently come just short.
 		grass_precise_v2()
 
-grass(5000, True, True)
+#grass(5000, True, True)
+#grass (5000, False, False)
