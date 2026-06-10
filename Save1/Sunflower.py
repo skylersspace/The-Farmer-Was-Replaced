@@ -17,8 +17,8 @@ def power(goal):
 		for i in range(7,15+1):
 			sun_petal_loc[i] = []
 		
-		for i in range (get_world_size()):
-			for j in range (get_world_size()):
+		for i in range (WORLD_SIZE):
+			for j in range (WORLD_SIZE):
 				plant(Entities.Sunflower)
 				sun_petal_loc[measure()].append((get_pos_x(), get_pos_y()))
 				if (measure() > 12):
@@ -50,3 +50,5 @@ def power(goal):
 	carrot(FIELD_SIZE)
 	while (num_items(Items.Power) < goal):
 		normal()
+
+power(num_items(Items.Power) + 1)

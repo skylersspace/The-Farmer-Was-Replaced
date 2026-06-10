@@ -3,7 +3,7 @@ from Weird import *
 
 def gold(goal):
 	WORLD_SIZE = get_world_size()
-	FIELD_SIZE = WORLD_SIZE ** 2
+	# FIELD_SIZE = WORLD_SIZE ** 2
 
 	compass = {
 		0: {
@@ -336,9 +336,9 @@ def gold(goal):
 
 		#Begin solving blindly, while mapping
 
-		# blind_solve_left(map, destination)
+		blind_solve_left(map, destination)
 		# blind_solve_right(map, destination)
-		blind_solve_path(map, destination)
+		# blind_solve_path(map, destination)
 	
 		# quick_print(map)
 		# After blindly solving, not all of the maze will be mapped.
