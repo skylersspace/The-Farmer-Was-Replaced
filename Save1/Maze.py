@@ -52,156 +52,6 @@ def gold(goal):
 
 		return maze_map
 
-	def gen_move_map():
-		move_map = []
-		for i in range(WORLD_SIZE):
-			move_map.append([])
-			for j in range(WORLD_SIZE):
-				move_map[i].append(False)
-
-		return move_map
-	
-	def gen_flood_fill(wall_map, destination):
-		# Create distance map. Unset distances are None
-		distance_map = []
-		for i in range(WORLD_SIZE):
-			distance_map.append([])
-			for j in range(WORLD_SIZE):
-				distance_map[i].append(None)
-
-		# Set destination to a distance of 0
-		distance_map[destination[0]][destination[1]] = 0
-
-		# The destination is the starting point
-		queue = [destination]
-		head = 0
-
-		while head < len(queue):
-			# Set next queue coordinates
-			qx, qy = queue[head]
-			head = head + 1
-
-			# Check each direction
-			for i in range(4):
-				# Get the next coordinate
-				dx, dy = compass[i]["offset"]
-				nx = qx + dx
-				ny = qy + dy
-
-				# Perform checks to ensure it is a valid target
-				if nx < 0 or nx >= WORLD_SIZE:
-					continue
-				if ny < 0 or ny >= WORLD_SIZE:
-					continue
-				if distance_map[nx][ny] != None:
-					continue
-				if (wall_map[nx][ny][compass[i]["reverse"]] == False) or (wall_map[nx][ny][compass[i]["reverse"]] == None):
-					continue
-
-				# Set the distance value
-				distance_map[nx][ny] = distance_map[qx][qy] + 1
-				# Add next coordinate to queue
-				queue.append((nx, ny))
-		
-		return distance_map
-	
-	def update_flood_fill(wall_map, distance_map, pos, dir):
-		# Update the map when a wall is discovered
-
-		# Get the now blocked neighbor
-		pos_x, pos_y = pos
-		dx, dy = compass[dir]["offset"]
-		nx = pos_x + dx
-		ny = pos_y + dy
-
-		# Gather cells that need invalidated
-		to_invalidate = []
-		inv_head = 0
-		if (distance_map[pos_x][pos_y] != None) and (distance_map[nx][ny] != None):
-			# Check which side is further from the destination and is now blocked off
-			if distance_map[pos_x][pos_y] > distance_map[nx][ny]:
-				to_invalidate.append((pos_x, pos_y))
-			else:
-				to_invalidate.append((nx, ny))
-		
-		# Invalidate affected cells that could have passed through this cell, starting at the head
-		distance_map[to_invalidate[0][0]][to_invalidate[0][1]] = None
-		
-		while inv_head < len(to_invalidate):
-			# Set the current coordinates at the head of the list
-			cx, cy = to_invalidate[inv_head]
-			inv_head = inv_head + 1
-
-			# Check the directions for a route from this cell
-			for i in range(4):
-				dx, dy = compass[i]["offset"]
-				ax = cx + dx
-				ay = cy + dy
-				
-				if (ax < 0) or (ax >= WORLD_SIZE):
-					continue
-				if (ay < 0) or (ay >= WORLD_SIZE):
-					continue
-				if distance_map[ax][ay] == None:
-					continue
-				if (wall_map[ax][ay][compass[i]["reverse"]] == False) or (wall_map[ax][ay][compass[i]["reverse"]] == None):
-					continue
-				# Invalidate if it could have routed through this cell
-				if distance_map[ax][ay] == distance_map[cx][cy] + 1:
-					distance_map[ax][ay] = None
-					to_invalidate.append((ax, ay))
-		
-		# Re-flood the invalidated cells from a valid neighbor
-		queue = []
-		head = 0
-
-		for i in range(len(to_invalidate)):
-			# Set the current coordinates 
-			cx, cy = to_invalidate[i]
-			for j in range(4):
-				dx, dy = compass[j]["offset"]
-				ax = cx + dx
-				ay = cy + dy
-
-				if (ax < 0) or (ax >= WORLD_SIZE):
-					continue
-				if (ay < 0) or (ay >= WORLD_SIZE):
-					continue
-				if distance_map[ax][ay] == None:
-					continue
-				if (wall_map[ax][ay][compass[j]["reverse"]] == False) or (wall_map[ax][ay][compass[j]["reverse"]] == None):
-					continue
-				
-				# Valid neighbor present, queue for re-flood
-				distance_map[cx][cy] = distance_map [ax][ay] +1
-				queue.append((cx, cy))
-				break
-
-		# BFS outward from the re-flood seeds to restore all invalidated distances
-		while head < len(queue):
-			cx, cy = queue[head]
-			head = head + 1
-
-			for i in range(4):
-				dx, dy = compass[i]["offset"]
-				ax = cx + dx
-				ay = cy + dy
-
-				if (ax < 0) or (ax >= WORLD_SIZE):
-					continue
-				if (ay < 0) or (ay >= WORLD_SIZE):
-					continue
-				if distance_map[ax][ay] == None:
-					continue
-				if (wall_map[ax][ay][compass[i]["reverse"]] == False) or (wall_map[ax][ay][compass[i]["reverse"]] == None):
-					continue
-
-				# Propagate distance outward to unset neighbors
-				distance_map[cx][cy] = distance_map [ax][ay] +1
-				queue.append((cx, cy))
-
-		return distance_map
-
 	def set_wall(wall_map, pos, dir, wall_value):
 		# When setting a wall, it needs to set both (N/S, and E/W)
 		if dir not in compass:
@@ -213,6 +63,73 @@ def gold(goal):
 
 		wall_map[pos[0]][pos[1]][dir] = wall_value
 		wall_map[pos[0] + dx][pos[1] + dy][compass[dir]["reverse"]] = wall_value
+
+	def gen_move_map():
+		move_map = []
+		for i in range(WORLD_SIZE):
+			move_map.append([])
+			for j in range(WORLD_SIZE):
+				move_map[i].append(False)
+
+		return move_map
+		
+	def gen_flood_fill(wall_map, destination):
+		# Create distance map. Unset distances are None
+		path_map = []
+		for i in range(WORLD_SIZE):
+			path_map.append([])
+			for j in range(WORLD_SIZE):
+				path_map[i].append(None)
+
+		# Begin the DFS algorithm
+		path_map[destination[0]][destination[1]] = 0
+		queue = [destination]
+
+		while len(queue) > 0:
+			current = queue.pop(0)
+			x, y = (current[0], current[1])
+			curr_value = path_map[x][y]	
+			
+			for i in compass:
+				x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				
+				# Check for possible movement, and that it hasn't already been mapped
+				if (wall_map[x][y][i] and path_map[x2][y2] == None):
+					path_map[x2][y2] = curr_value + 1
+					queue.append((x2, y2))
+
+		return path_map
+	
+	def flood_fill_add_wall (wall_map, distance_map, pos, dir):
+		# Identify the two cells now on opposing sides of the wall
+		# Check for potential existing neighbor
+		# Set queue head
+		# Invalidate affected cells
+		# Reflood cells
+
+		# Update the map when a wall is discovered and added	
+		x1, y1 = pos
+		target_value = distance_map[x1 + compass[dir]["offset"][0]][y1 + compass[dir]["offset"][1]]
+
+		# Check for potential neighbor
+		for i in range(dir + 1, dir + 4):
+			dx, dy = (compass[i % 4]["offset"][0], compass[i % 4]["offset"][1])
+			if (wall_map[x1][y1][i % 4] and distance_map[x1 + dx][y1 + dy] == target_value):
+				return
+		
+		# Set queue head, and begin invalidation
+		target_value = distance_map[x1][y1]
+		distance_map[x1][y1] = None
+
+
+
+		return distance_map
+	
+	def flood_fill_del_wall (wall_map, distance_map, pos, dir):
+		# Update the map when a wall is discovered to be missing
+
+
+		return distance_map
 
 	def blind_solve_left(map, destination):
 		# Always follow the left wall
@@ -266,58 +183,47 @@ def gold(goal):
 				
 			pos = (get_pos_x(), get_pos_y())
 
-	def blind_solve_path(map, destination):
-		quick_print("Blind Path")
-
-		move_map = gen_move_map()
-
-		distance_map = gen_flood_fill(map, destination)
-		quick_print(distance_map)
-		
-		pos = (get_pos_x(), get_pos_y())
-		while (pos != destination):
-			if not move_map[pos[0]][pos[1]]:
-				for i in range(4):
-					if can_move(compass[i]["direction"]):
-						continue
-					set_wall(map, pos, i, can_move(compass[i]["direction"]))
-					update_flood_fill(map, distance_map, pos, i)
-				move_map[pos[0]][pos[1]] = True
-
-			# Move in a valid direction, towards the destination
-			test_move = []
-			best_distance = None
-			move_dir = None
-			for i in range(4):
-				if not (map[pos[0]][pos[1]][i] == True):
-					test_move.append(None)
-					continue
-				test_move.append(distance_map[pos[0] + compass[i]["offset"][0]][pos[1] + compass[i]["offset"][1]])
-				if best_distance == None or test_move[i] < best_distance:
-					move_dir = i
-					best_distance = test_move[i]
-
-			# Move	
-			move(compass[i]["direction"])
-			pos = (get_pos_x(), get_pos_y())
-
 	def solve_path(map, destination):
 		# Calculate the path to the goal, checking for new open paths along the way
 		quick_print("Solve Path")
 
 		move_map = gen_move_map()
+		path_map = gen_flood_fill(map, destination)
 
-		distance_map = gen_flood_fill(map, destination)
-		quick_print(distance_map)
+		x, y = (get_pos_x(), get_pos_y())
+		pos = (x, y)
+		while (pos != destination):
+			# If unvisited, check for walls
+			if not move_map[x][y]:
+				for i in range(4):
+					# Compare to existing wall map
+					wall_check = can_move(compass[i]["direction"])
+					if (map[x][y][i] == None):
+						continue
+					if (map[x][y][i] == wall_check):
+						continue
+					if (wall_check):
+						set_wall(map, pos, i, wall_check)
+						flood_fill_add_wall(map, path_map, pos, i)
+					else:
+						set_wall(map, pos, i, wall_check)
+						flood_fill_del_wall(map, path_map, pos, i)
+				move_map[x][y] = True
 
-		# pos = (get_pos_x(), get_pos_y())
-		# while (pos != destination):
-		# 	if not move_map[pos[0]][pos[1]]:
-		# 		for i in range(4):
-		# 			map[pos[0]][pos[1]][i] = can_move(compass[i]["direction"])
-		# 		move_map[pos[0]][pos[1]] = True
+			# Find the lowest value
+			lowest_val = FIELD_SIZE
+			for i in range(4):
+				lowest_val = min(lowest_val, path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
+			# Move along the fastest path
+			for i in range(4):
+				if (path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]] == lowest_val):
+					move(compass[i]["direction"])
+					break
+			
+			# Update for the next loop
+			x, y = (get_pos_x(), get_pos_y())
+			pos = (x, y)
 
-			# Begin DFS algorithm
 
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
@@ -336,9 +242,9 @@ def gold(goal):
 
 		#Begin solving blindly, while mapping
 
-		blind_solve_left(map, destination)
+		# blind_solve_left(map, destination)
 		# blind_solve_right(map, destination)
-		# blind_solve_path(map, destination)
+		solve_path(map, destination)
 	
 		# quick_print(map)
 		# After blindly solving, not all of the maze will be mapped.

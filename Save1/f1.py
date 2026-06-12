@@ -1,3 +1,3 @@
-t1, t2 = [1,2]
+test = [2,5,8,2,3]
 
-quick_print(t2)
+quick_print(min(test))
