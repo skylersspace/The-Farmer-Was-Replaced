@@ -100,30 +100,46 @@ def gold(goal):
 
 		return path_map
 	
-	def flood_fill_add_wall (wall_map, distance_map, pos, dir):
-		# Identify the two cells now on opposing sides of the wall
-		# Check for potential existing neighbor
-		# Set queue head
-		# Invalidate affected cells
-		# Reflood cells
+	def flood_fill_add_wall (wall_map, distance_map, pos):
+		# Find and invalidate affected paths
+		root = pos
+		queue = [pos]
+		while (len(queue) > 0):
+			# Loop setup
+			current = queue.pop(0)
+			x, y = current
+			current_value = distance_map[x][y]
+			
+			for i in range(4):
+				dx, dy = (compass[i]["offset"][0], compass[i]["offset"][1])
+				target_value = distance_map[x + dx][y + dy]
+				# Check for open path
+				if (not wall_map[x][y][i]):
+					continue
+				# Check for alternate neighbor route
+				if (target_value == current_value - 1):
+					if (target_value < distance_map[root[0]][root[1]]):
+						root = (x + dx, y + dy)
+					break
+				# Check for child path
+				if (target_value == current_value + 1):
+					distance_map[x][y] = None
+					queue.append((x + dx, y + dy))
 
-		# Update the map when a wall is discovered and added	
-		x1, y1 = pos
-		target_value = distance_map[x1 + compass[dir]["offset"][0]][y1 + compass[dir]["offset"][1]]
-
-		# Check for potential neighbor
-		for i in range(dir + 1, dir + 4):
-			dx, dy = (compass[i % 4]["offset"][0], compass[i % 4]["offset"][1])
-			if (wall_map[x1][y1][i % 4] and distance_map[x1 + dx][y1 + dy] == target_value):
-				return
-		
-		# Set queue head, and begin invalidation
-		target_value = distance_map[x1][y1]
-		distance_map[x1][y1] = None
-
-
-
-		return distance_map
+		# Begin the DFS algorithm to reflood the cells
+		queue = [root]
+		while len(queue) > 0:
+			current = queue.pop(0)
+			x, y = (current[0], current[1])
+			curr_value = distance_map[x][y]	
+			
+			for i in compass:
+				x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				
+				# Check for possible movement, and that it hasn't already been mapped
+				if (wall_map[x][y][i] and distance_map[x2][y2] == None):
+					distance_map[x2][y2] = curr_value + 1
+					queue.append((x2, y2))
 	
 	def flood_fill_del_wall (wall_map, distance_map, pos, dir):
 		# Update the map when a wall is discovered to be missing
@@ -208,15 +224,25 @@ def gold(goal):
 					else:
 						set_wall(map, pos, i, wall_check)
 						flood_fill_del_wall(map, path_map, pos, i)
+						# THIS CODE CURRENTLY ISN'T FUNCTIONAL 
 				move_map[x][y] = True
 
 			# Find the lowest value
 			lowest_val = FIELD_SIZE
+			quick_print("Current Position:", x, y)
 			for i in range(4):
+				quick_print("Dir:", i, "Neighbor value:", path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
+				if (not map[x][y][i]):
+					quick_print("Wall detected, invalid move path")
+					continue
 				lowest_val = min(lowest_val, path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
+			
+			quick_print("Lowest val:", lowest_val)
+
 			# Move along the fastest path
 			for i in range(4):
 				if (path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]] == lowest_val):
+					quick_print("Moving:", compass[i]["direction"])
 					move(compass[i]["direction"])
 					break
 			
