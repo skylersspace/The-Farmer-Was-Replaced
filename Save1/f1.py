@@ -1,3 +1,8 @@
-test = [2,5,8,2,3]
-
-quick_print(min(test))
+for i in range(5):
+	quick_print(i)
+quick_print("")
+for i in range(-1, 5):
+	quick_print(i)
+quick_print("")
+for i in range(5, 0, -1):
+	quick_print(i)

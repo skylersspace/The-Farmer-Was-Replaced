@@ -5,6 +5,13 @@ def gold(goal):
 	WORLD_SIZE = get_world_size()
 	# FIELD_SIZE = WORLD_SIZE ** 2
 
+	def print_map(map):
+		for i in range(WORLD_SIZE - 1, -1, -1):
+			line_string = ""
+			for j in range(WORLD_SIZE):
+				line_string = line_string + str(map[j][i]) + ", "
+			quick_print(line_string)
+
 	compass = {
 		0: {
 			"direction": North,
@@ -101,24 +108,30 @@ def gold(goal):
 		return path_map
 	
 	def flood_fill_add_wall (wall_map, distance_map, pos):
+		quick_print("Flood Fill: Adding Wall")
 		# Find and invalidate affected paths
-		root = pos
+		root = None
 		queue = [pos]
 		while (len(queue) > 0):
 			# Loop setup
 			current = queue.pop(0)
 			x, y = current
 			current_value = distance_map[x][y]
-			
+			# Better logic to negate this?
+			if (current_value == None):
+				continue
+			quick_print("Loop:", current, current_value, )
+
 			for i in range(4):
-				dx, dy = (compass[i]["offset"][0], compass[i]["offset"][1])
-				target_value = distance_map[x + dx][y + dy]
 				# Check for open path
 				if (not wall_map[x][y][i]):
 					continue
+				dx, dy = (compass[i]["offset"][0], compass[i]["offset"][1])
+				target_value = distance_map[x + dx][y + dy]
 				# Check for alternate neighbor route
 				if (target_value == current_value - 1):
-					if (target_value < distance_map[root[0]][root[1]]):
+					if (root == None or target_value < distance_map[root[0]][root[1]]):
+						quick_print("Updating Root", root)
 						root = (x + dx, y + dy)
 					break
 				# Check for child path
@@ -126,20 +139,22 @@ def gold(goal):
 					distance_map[x][y] = None
 					queue.append((x + dx, y + dy))
 
-		# Begin the DFS algorithm to reflood the cells
-		queue = [root]
-		while len(queue) > 0:
-			current = queue.pop(0)
-			x, y = (current[0], current[1])
-			curr_value = distance_map[x][y]	
-			
-			for i in compass:
-				x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+		if (root != None):
+			# Begin the DFS algorithm to reflood the cells
+			queue = [root]
+
+			while len(queue) > 0:
+				current = queue.pop(0)
+				x, y = (current[0], current[1])
+				current_value = distance_map[x][y]	
 				
-				# Check for possible movement, and that it hasn't already been mapped
-				if (wall_map[x][y][i] and distance_map[x2][y2] == None):
-					distance_map[x2][y2] = curr_value + 1
-					queue.append((x2, y2))
+				for i in compass:
+					x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+					
+					# Check for possible movement, and that it hasn't already been mapped
+					if (wall_map[x][y][i] and distance_map[x2][y2] == None):
+						distance_map[x2][y2] = current_value + 1
+						queue.append((x2, y2))
 	
 	def flood_fill_del_wall (wall_map, distance_map, pos, dir):
 		# Update the map when a wall is discovered to be missing
@@ -205,12 +220,16 @@ def gold(goal):
 
 		move_map = gen_move_map()
 		path_map = gen_flood_fill(map, destination)
+		quick_print("Initial path map")
+		print_map(path_map)
 
 		x, y = (get_pos_x(), get_pos_y())
 		pos = (x, y)
 		while (pos != destination):
+			quick_print("")
 			# If unvisited, check for walls
 			if not move_map[x][y]:
+				quick_print("New cell, checking for walls")
 				for i in range(4):
 					# Compare to existing wall map
 					wall_check = can_move(compass[i]["direction"])
@@ -218,10 +237,14 @@ def gold(goal):
 						continue
 					if (map[x][y][i] == wall_check):
 						continue
-					if (wall_check):
+					if (not wall_check):
+						quick_print("Setting new wall")
 						set_wall(map, pos, i, wall_check)
-						flood_fill_add_wall(map, path_map, pos, i)
+						flood_fill_add_wall(map, path_map, pos)
+						quick_print("New path map")
+						print_map(path_map)
 					else:
+						quick_print("ERROR: This shouldn't trigger yet.")
 						set_wall(map, pos, i, wall_check)
 						flood_fill_del_wall(map, path_map, pos, i)
 						# THIS CODE CURRENTLY ISN'T FUNCTIONAL 
@@ -231,10 +254,10 @@ def gold(goal):
 			lowest_val = FIELD_SIZE
 			quick_print("Current Position:", x, y)
 			for i in range(4):
-				quick_print("Dir:", i, "Neighbor value:", path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
 				if (not map[x][y][i]):
 					quick_print("Wall detected, invalid move path")
 					continue
+				quick_print("Dir:", i, "Neighbor value:", path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
 				lowest_val = min(lowest_val, path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
 			
 			quick_print("Lowest val:", lowest_val)
@@ -250,7 +273,6 @@ def gold(goal):
 			x, y = (get_pos_x(), get_pos_y())
 			pos = (x, y)
 
-
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 		# Use same amount of substance to reuse maze on treasure
@@ -263,12 +285,14 @@ def gold(goal):
 		
 		# Entities.Hedge vs Entities.Treasure
 
-		destination = measure()
 		map = gen_wall_map()
+		destination = measure()
 
 		#Begin solving blindly, while mapping
-
-		# blind_solve_left(map, destination)
+		for i in range(5):
+			blind_solve_left(map, destination)
+			use_item(Items.Weird_Substance, substance)
+			destination = measure()
 		# blind_solve_right(map, destination)
 		solve_path(map, destination)
 	
