@@ -163,13 +163,9 @@ def gold(goal):
 		return distance_map
 
 	def blind_solve_left(map, destination):
-		# Always follow the left wall
-		# quick_print("Blind left")
-
-		facing = 0
-		
 		move_map = gen_move_map()
 
+		facing = 0
 		pos = (get_pos_x(), get_pos_y())
 		while (pos != destination):
 			if not move_map[pos[0]][pos[1]]:
@@ -233,16 +229,21 @@ def gold(goal):
 				for i in range(4):
 					# Compare to existing wall map
 					wall_check = can_move(compass[i]["direction"])
+					# Guards against out of bound checks
 					if (map[x][y][i] == None):
 						continue
+					# Compares wall values
 					if (map[x][y][i] == wall_check):
+						quick_print("Wall data matches. Continuing")
 						continue
+					# Adding a wall
 					if (not wall_check):
 						quick_print("Setting new wall")
 						set_wall(map, pos, i, wall_check)
 						flood_fill_add_wall(map, path_map, pos)
 						quick_print("New path map")
 						print_map(path_map)
+					# Removing a wall
 					else:
 						quick_print("ERROR: This shouldn't trigger yet.")
 						set_wall(map, pos, i, wall_check)
@@ -273,6 +274,48 @@ def gold(goal):
 			x, y = (get_pos_x(), get_pos_y())
 			pos = (x, y)
 
+	def solve_path_slow(map, destination):
+		move_map = gen_move_map()
+		path_map = gen_flood_fill(map, destination)
+
+		x, y = (get_pos_x(), get_pos_y())
+		pos = (x, y)
+		while (pos != destination):
+			# If unvisited, check for walls
+			if not move_map[x][y]:
+				for i in range(4):
+					# Compare to existing wall map
+					wall_check = can_move(compass[i]["direction"])
+					# Guards against out of bound checks
+					if (map[x][y][i] == None):
+						continue
+					# Compares wall values
+					if (map[x][y][i] == wall_check):
+						continue
+					
+					set_wall(map, pos, i, wall_check)
+					path_map = gen_flood_fill(map, destination)
+				move_map[x][y] = True
+
+			# Find the lowest value
+			lowest_val = FIELD_SIZE
+			for i in range(4):
+				if (not map[x][y][i]):
+					continue
+				lowest_val = min(lowest_val, path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
+
+			# Move along the fastest path
+			for i in range(4):
+				if (not map[x][y][i]):
+					continue
+				if (path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]] == lowest_val):
+					move(compass[i]["direction"])
+					break
+			
+			# Update for the next loop
+			x, y = (get_pos_x(), get_pos_y())
+			pos = (x, y)
+	
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 		# Use same amount of substance to reuse maze on treasure
@@ -289,13 +332,16 @@ def gold(goal):
 		destination = measure()
 
 		#Begin solving blindly, while mapping
-		for i in range(5):
-			blind_solve_left(map, destination)
-			use_item(Items.Weird_Substance, substance)
-			destination = measure()
+
+		blind_solve_left(map, destination)
 		# blind_solve_right(map, destination)
-		solve_path(map, destination)
-	
+		# solve_path(map, destination)
+		for i in range(300):
+			quick_print("Running map iteration", i)
+			use_item(Items.Weird_Substance,  substance)
+			destination = measure()
+			solve_path_slow(map, destination)
+		harvest()
 		# quick_print(map)
 		# After blindly solving, not all of the maze will be mapped.
 		# Will need to re-map as the drone attempts to navigate to the target.
@@ -317,6 +363,6 @@ for test in range(1):
 	gold(1)
 	quick_print("Run complete")
 
-	harvest()
-	quick_print("")
+	# harvest()
+	# quick_print("")
 	# reset()
