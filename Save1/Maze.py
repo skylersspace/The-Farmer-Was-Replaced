@@ -79,89 +79,7 @@ def gold(goal):
 				move_map[i].append(False)
 
 		return move_map
-		
-	def gen_flood_fill(wall_map, destination):
-		# Create distance map. Unset distances are None
-		path_map = []
-		for i in range(WORLD_SIZE):
-			path_map.append([])
-			for j in range(WORLD_SIZE):
-				path_map[i].append(None)
-
-		# Begin the DFS algorithm
-		path_map[destination[0]][destination[1]] = 0
-		queue = [destination]
-
-		while len(queue) > 0:
-			current = queue.pop(0)
-			x, y = (current[0], current[1])
-			curr_value = path_map[x][y]	
 			
-			for i in compass:
-				x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
-				
-				# Check for possible movement, and that it hasn't already been mapped
-				if (wall_map[x][y][i] and path_map[x2][y2] == None):
-					path_map[x2][y2] = curr_value + 1
-					queue.append((x2, y2))
-
-		return path_map
-	
-	def flood_fill_add_wall (wall_map, distance_map, pos):
-		quick_print("Flood Fill: Adding Wall")
-		# Find and invalidate affected paths
-		root = None
-		queue = [pos]
-		while (len(queue) > 0):
-			# Loop setup
-			current = queue.pop(0)
-			x, y = current
-			current_value = distance_map[x][y]
-			# Better logic to negate this?
-			if (current_value == None):
-				continue
-			quick_print("Loop:", current, current_value, )
-
-			for i in range(4):
-				# Check for open path
-				if (not wall_map[x][y][i]):
-					continue
-				dx, dy = (compass[i]["offset"][0], compass[i]["offset"][1])
-				target_value = distance_map[x + dx][y + dy]
-				# Check for alternate neighbor route
-				if (target_value == current_value - 1):
-					if (root == None or target_value < distance_map[root[0]][root[1]]):
-						quick_print("Updating Root", root)
-						root = (x + dx, y + dy)
-					break
-				# Check for child path
-				if (target_value == current_value + 1):
-					distance_map[x][y] = None
-					queue.append((x + dx, y + dy))
-
-		if (root != None):
-			# Begin the DFS algorithm to reflood the cells
-			queue = [root]
-
-			while len(queue) > 0:
-				current = queue.pop(0)
-				x, y = (current[0], current[1])
-				current_value = distance_map[x][y]	
-				
-				for i in compass:
-					x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
-					
-					# Check for possible movement, and that it hasn't already been mapped
-					if (wall_map[x][y][i] and distance_map[x2][y2] == None):
-						distance_map[x2][y2] = current_value + 1
-						queue.append((x2, y2))
-	
-	def flood_fill_del_wall (wall_map, distance_map, pos, dir):
-		# Update the map when a wall is discovered to be missing
-
-
-		return distance_map
-
 	def blind_solve_left(map, destination):
 		move_map = gen_move_map()
 
@@ -210,73 +128,36 @@ def gold(goal):
 				
 			pos = (get_pos_x(), get_pos_y())
 
-	def solve_path(map, destination):
-		# Calculate the path to the goal, checking for new open paths along the way
-		quick_print("Solve Path")
+	def gen_flood_full(wall_map, destination):
+		# Create distance map. Unset distances are None
+		path_map = []
+		for i in range(WORLD_SIZE):
+			path_map.append([])
+			for j in range(WORLD_SIZE):
+				path_map[i].append(None)
 
-		move_map = gen_move_map()
-		path_map = gen_flood_fill(map, destination)
-		quick_print("Initial path map")
-		print_map(path_map)
+		# Begin the BFS algorithm
+		path_map[destination[0]][destination[1]] = 0
+		queue = [destination]
 
-		x, y = (get_pos_x(), get_pos_y())
-		pos = (x, y)
-		while (pos != destination):
-			quick_print("")
-			# If unvisited, check for walls
-			if not move_map[x][y]:
-				quick_print("New cell, checking for walls")
-				for i in range(4):
-					# Compare to existing wall map
-					wall_check = can_move(compass[i]["direction"])
-					# Guards against out of bound checks
-					if (map[x][y][i] == None):
-						continue
-					# Compares wall values
-					if (map[x][y][i] == wall_check):
-						quick_print("Wall data matches. Continuing")
-						continue
-					# Adding a wall
-					if (not wall_check):
-						quick_print("Setting new wall")
-						set_wall(map, pos, i, wall_check)
-						flood_fill_add_wall(map, path_map, pos)
-						quick_print("New path map")
-						print_map(path_map)
-					# Removing a wall
-					else:
-						quick_print("ERROR: This shouldn't trigger yet.")
-						set_wall(map, pos, i, wall_check)
-						flood_fill_del_wall(map, path_map, pos, i)
-						# THIS CODE CURRENTLY ISN'T FUNCTIONAL 
-				move_map[x][y] = True
-
-			# Find the lowest value
-			lowest_val = FIELD_SIZE
-			quick_print("Current Position:", x, y)
-			for i in range(4):
-				if (not map[x][y][i]):
-					quick_print("Wall detected, invalid move path")
-					continue
-				quick_print("Dir:", i, "Neighbor value:", path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
-				lowest_val = min(lowest_val, path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]])
+		while len(queue) > 0:
+			current = queue.pop(0)
+			x, y = (current[0], current[1])
+			curr_value = path_map[x][y]	
 			
-			quick_print("Lowest val:", lowest_val)
+			for i in compass:
+				x2, y2 = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				
+				# Check for possible movement, and that it hasn't already been mapped
+				if (wall_map[x][y][i] and path_map[x2][y2] == None):
+					path_map[x2][y2] = curr_value + 1
+					queue.append((x2, y2))
 
-			# Move along the fastest path
-			for i in range(4):
-				if (path_map[x + compass[i]["offset"][0]][y + compass[i]["offset"][1]] == lowest_val):
-					quick_print("Moving:", compass[i]["direction"])
-					move(compass[i]["direction"])
-					break
-			
-			# Update for the next loop
-			x, y = (get_pos_x(), get_pos_y())
-			pos = (x, y)
+		return path_map
 
-	def solve_path_slow(map, destination):
+	def solve_full_flood(map, destination):
 		move_map = gen_move_map()
-		path_map = gen_flood_fill(map, destination)
+		path_map = gen_flood_full(map, destination)
 
 		x, y = (get_pos_x(), get_pos_y())
 		pos = (x, y)
@@ -294,7 +175,7 @@ def gold(goal):
 						continue
 					
 					set_wall(map, pos, i, wall_check)
-					path_map = gen_flood_fill(map, destination)
+					path_map = gen_flood_full(map, destination)
 				move_map[x][y] = True
 
 			# Find the lowest value
@@ -316,6 +197,113 @@ def gold(goal):
 			x, y = (get_pos_x(), get_pos_y())
 			pos = (x, y)
 	
+	def find_flood_path_bi(wall_map, start, destination):
+		# Initialize the maps
+		start_map = []
+		end_map = []
+		for i in range(WORLD_SIZE):
+			start_map.append([])
+			end_map.append([])
+			for j in range(WORLD_SIZE):
+				start_map[i].append(None)
+				end_map[i].append(None)
+
+		# Begin the BFS algorithm
+		start_map[start[0]][start[1]] = 0
+		end_map[destination[0]][destination[1]] = 0
+		queue_start = [start]
+		queue_end = [destination]
+
+		junction = None
+		while(junction == None):
+			current_start = queue_start.pop(0)
+			current_end = queue_end.pop(0)
+			x1, y1 = (current_start[0], current_start[1])
+			x2, y2 = (current_end[0], current_end[1])
+			curr_value_start = start_map[x1][y1]
+			curr_value_end = end_map[x2][y2]
+			
+			for i in compass:
+				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
+				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
+				
+				# Check for possible movement, and that it hasn't already been mapped
+				if (wall_map[x1][y1][i] and start_map[dx1][dy1] == None):
+					start_map[dx1][dy1] = curr_value_start + 1
+					queue_start.append((dx1, dy1))
+					# Check for junction point
+					if (end_map[dx1][dy1] != None):
+						junction = (dx1, dy1)
+						break
+				if (wall_map[x2][y2][i] and end_map[dx2][dy2] == None):
+					end_map[dx2][dy2] = curr_value_end + 1
+					queue_end.append((dx2, dy2))
+					if (start_map[dx2][dy2] != None):
+						junction = (dx2, dy2)
+						break
+		
+		quick_print("")
+		quick_print("Print Start Path")
+		print_map(start_map)
+		quick_print("")
+		quick_print("Print End Path")
+		print_map(end_map)
+		quick_print("")
+
+		quick_print("Generating Path")
+		# Calculate path
+		# Start at the junction, work out
+		# Once done, merge and return list
+
+		# Drone List
+		start_move = []
+		x, y = junction
+		dx, dy = (0, 0)
+		pos = (x, y)
+		quick_print("Start Path")
+		while (pos != start):
+			current_value = FIELD_SIZE
+			for i in range(4):
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				if start_map[dx][dy] == None:
+					continue
+				current_value = min(current_value, start_map[dx][dy])
+
+			for i in range(4):
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				if start_map[dx][dy] == current_value:
+					start_move.insert(0, compass[i]["direction"])
+					break
+			
+			x, y = (dx, dy)
+			pos = (dx, dy)
+
+		# Destination List
+		end_move = []
+		x, y = junction
+		pos = (x, y)
+		quick_print("End Path")
+		while (pos != destination):
+			current_value = FIELD_SIZE
+			for i in range(4):
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				if end_map[dx][dy] == None:
+					continue
+				current_value = min(current_value, end_map[dx][dy])
+
+			for i in range(4):
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+				if end_map[dx][dy] == current_value:
+					end_move.append(compass[i]["direction"])
+					break
+
+			x, y = (dx, dy)
+			pos = (dx, dy)
+		
+		start_move.pop()
+		answer = start_move + end_move
+		return answer
+	
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 		# Use same amount of substance to reuse maze on treasure
@@ -336,13 +324,21 @@ def gold(goal):
 		blind_solve_left(map, destination)
 		# blind_solve_right(map, destination)
 		# solve_path(map, destination)
-		for i in range(300):
-			quick_print("Running map iteration", i)
-			use_item(Items.Weird_Substance,  substance)
-			destination = measure()
-			solve_path_slow(map, destination)
-		harvest()
-		# quick_print(map)
+		# solve_full_flood(map, destination)
+
+		use_item(Items.Weird_Substance,  substance)
+		destination = measure()
+
+		
+		# for i in range(300):
+		# 	quick_print("Running map iteration", i)
+		# 	use_item(Items.Weird_Substance,  substance)
+		# 	destination = measure()
+		# 	THING FUNCTION
+		# harvest()
+		
+		test = find_flood_path_bi(map, (get_pos_x(), get_pos_y()), destination)
+		quick_print(test)
 		# After blindly solving, not all of the maze will be mapped.
 		# Will need to re-map as the drone attempts to navigate to the target.
 		# This will also potentially find modified walls
