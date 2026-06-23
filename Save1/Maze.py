@@ -279,12 +279,20 @@ def gold(goal):
 		while (pos != destination):
 			current_value = FIELD_SIZE
 			for i in range(4):
+				if (wall_map[x][y][i] == None):
+					continue
+				if (wall_map[x][y][i] == False):
+					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if end_map[dx][dy] == None:
 					continue
 				current_value = min(current_value, end_map[dx][dy])
 
 			for i in range(4):
+				if (wall_map[x][y][i] == None):
+					continue
+				if (wall_map[x][y][i] == False):
+					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if end_map[dx][dy] == current_value:
 					end_move.append(compass[i]["direction"])
