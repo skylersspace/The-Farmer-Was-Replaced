@@ -241,16 +241,7 @@ def gold(goal):
 					if (start_map[dx2][dy2] != None):
 						junction = (dx2, dy2)
 						break
-		
-		quick_print("")
-		quick_print("Print Start Path")
-		print_map(start_map)
-		quick_print("")
-		quick_print("Print End Path")
-		print_map(end_map)
-		quick_print("")
 
-		quick_print("Generating Path")
 		# Calculate path
 		# Start at the junction, work out
 		# Once done, merge and return list
@@ -260,16 +251,19 @@ def gold(goal):
 		x, y = junction
 		dx, dy = (0, 0)
 		pos = (x, y)
-		quick_print("Start Path")
 		while (pos != start):
 			current_value = FIELD_SIZE
 			for i in range(4):
+				if (wall_map[x][y][i] != True):
+					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if start_map[dx][dy] == None:
 					continue
 				current_value = min(current_value, start_map[dx][dy])
 
 			for i in range(4):
+				if (wall_map[x][y][i] != True):
+					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if start_map[dx][dy] == current_value:
 					start_move.insert(0, compass[i]["direction"])
@@ -282,7 +276,6 @@ def gold(goal):
 		end_move = []
 		x, y = junction
 		pos = (x, y)
-		quick_print("End Path")
 		while (pos != destination):
 			current_value = FIELD_SIZE
 			for i in range(4):
@@ -304,6 +297,43 @@ def gold(goal):
 		answer = start_move + end_move
 		return answer
 	
+	def follow_path(wall_map, destination):
+		move_map = gen_move_map()
+		pos = (get_pos_x(), get_pos_y())
+		
+		while (pos != destination):
+			path = find_flood_path_bi(wall_map, pos, destination)
+			for i in path:
+				quick_print("Starting to follow path")
+				
+				# Ensure wall map is accurate
+				update = False
+				if not move_map[pos[0]][pos[1]]: # CHECK: IS THIS ACCURATE
+					for j in range(4):
+						quick_print("Checking wall", pos, compass[j]["direction"], wall_map[pos[0]][pos[1]][j], can_move(compass[j]["direction"]))
+						if (wall_map[pos[0]][pos[1]][j] == None):
+							quick_print("Skipping check. (None)")
+							continue
+						if (wall_map[pos[0]][pos[1]][j] != can_move(compass[j]["direction"])):
+							quick_print("Updating wall")
+							set_wall(wall_map, pos, j, can_move(compass[j]["direction"]))
+							update = True
+					move_map[pos[0]][pos[1]] = True
+				
+				pos = (get_pos_x(), get_pos_y())
+				if update:
+					quick_print("Break the loop!")
+					path = find_flood_path_bi(wall_map, pos, destination)
+					break
+
+				# Move
+				quick_print("Moving", i)
+				move(i)
+				
+		quick_print("Finish")	
+		harvest()
+
+
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 		# Use same amount of substance to reuse maze on treasure
@@ -313,12 +343,12 @@ def gold(goal):
 		# Spawn the maze
 		plant(Entities.Bush)
 		use_item(Items.Weird_Substance,  substance)
-		
-		# Entities.Hedge vs Entities.Treasure
 
 		map = gen_wall_map()
 		destination = measure()
 
+		# UNDER DEVELOPMENT
+		
 		#Begin solving blindly, while mapping
 
 		blind_solve_left(map, destination)
@@ -337,8 +367,7 @@ def gold(goal):
 		# 	THING FUNCTION
 		# harvest()
 		
-		test = find_flood_path_bi(map, (get_pos_x(), get_pos_y()), destination)
-		quick_print(test)
+		follow_path(map, destination)
 		# After blindly solving, not all of the maze will be mapped.
 		# Will need to re-map as the drone attempts to navigate to the target.
 		# This will also potentially find modified walls
