@@ -359,13 +359,13 @@ def gold(goal):
 		
 		#Begin solving blindly, while mapping
 
-		blind_solve_left(map, destination)
+		# blind_solve_left(map, destination)
 		# blind_solve_right(map, destination)
 		# solve_path(map, destination)
 		# solve_full_flood(map, destination)
 
-		use_item(Items.Weird_Substance,  substance)
-		destination = measure()
+		# use_item(Items.Weird_Substance,  substance)
+		# destination = measure()
 
 		
 		# for i in range(300):
@@ -375,10 +375,8 @@ def gold(goal):
 		# 	THING FUNCTION
 		# harvest()
 		
-		follow_path(map, destination)
-		# After blindly solving, not all of the maze will be mapped.
-		# Will need to re-map as the drone attempts to navigate to the target.
-		# This will also potentially find modified walls
+		find_flood_path_bi(map, (get_pos_x(), get_pos_y()), destination) 
+		# follow_path(map, destination)
 
 		# Reuse the maze
 		# for i in range(300):
