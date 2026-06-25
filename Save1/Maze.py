@@ -199,6 +199,7 @@ def gold(goal):
 	
 	def find_flood_path_bi(wall_map, start, destination):
 		# Initialize the maps
+		quick_print("Starting bidirectional map")
 		start_map = []
 		end_map = []
 		for i in range(WORLD_SIZE):
@@ -245,6 +246,7 @@ def gold(goal):
 		# Calculate path
 		# Start at the junction, work out
 		# Once done, merge and return list
+		quick_print("Calculating path")
 
 		# Drone List
 		start_move = []
@@ -394,6 +396,6 @@ for test in range(1):
 	gold(1)
 	quick_print("Run complete")
 
-	# harvest()
+	harvest()
 	# quick_print("")
 	# reset()
