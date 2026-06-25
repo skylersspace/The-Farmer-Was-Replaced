@@ -200,6 +200,7 @@ def gold(goal):
 	def find_flood_path_bi(wall_map, start, destination):
 		# Initialize the maps
 		quick_print("Starting bidirectional map")
+		quick_print("Start:", start, "Goal", destination)
 		start_map = []
 		end_map = []
 		for i in range(WORLD_SIZE):
@@ -242,16 +243,14 @@ def gold(goal):
 					if (start_map[dx2][dy2] != None):
 						junction = (dx2, dy2)
 						break
-
+		
 		# Calculate path
 		# Start at the junction, work out
 		# Once done, merge and return list
-		quick_print("Calculating path")
 
 		# Drone List
 		start_move = []
 		x, y = junction
-		dx, dy = (0, 0)
 		pos = (x, y)
 		while (pos != start):
 			current_value = FIELD_SIZE
@@ -268,7 +267,7 @@ def gold(goal):
 					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if start_map[dx][dy] == current_value:
-					start_move.insert(0, compass[i]["direction"])
+					start_move.insert(0, compass[compass[i]["reverse"]]["direction"])
 					break
 			
 			x, y = (dx, dy)
@@ -281,9 +280,7 @@ def gold(goal):
 		while (pos != destination):
 			current_value = FIELD_SIZE
 			for i in range(4):
-				if (wall_map[x][y][i] == None):
-					continue
-				if (wall_map[x][y][i] == False):
+				if (wall_map[x][y][i] != True):
 					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if end_map[dx][dy] == None:
@@ -291,9 +288,7 @@ def gold(goal):
 				current_value = min(current_value, end_map[dx][dy])
 
 			for i in range(4):
-				if (wall_map[x][y][i] == None):
-					continue
-				if (wall_map[x][y][i] == False):
+				if (wall_map[x][y][i] != True):
 					continue
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 				if end_map[dx][dy] == current_value:
@@ -303,8 +298,8 @@ def gold(goal):
 			x, y = (dx, dy)
 			pos = (dx, dy)
 		
-		start_move.pop()
 		answer = start_move + end_move
+		quick_print (answer)
 		return answer
 	
 	def follow_path(wall_map, destination):
@@ -361,13 +356,13 @@ def gold(goal):
 		
 		#Begin solving blindly, while mapping
 
-		# blind_solve_left(map, destination)
+		blind_solve_left(map, destination)
 		# blind_solve_right(map, destination)
 		# solve_path(map, destination)
 		# solve_full_flood(map, destination)
 
-		# use_item(Items.Weird_Substance,  substance)
-		# destination = measure()
+		use_item(Items.Weird_Substance,  substance)
+		destination = measure()
 
 		
 		# for i in range(300):
@@ -396,6 +391,6 @@ for test in range(1):
 	gold(1)
 	quick_print("Run complete")
 
-	harvest()
+	# harvest()
 	# quick_print("")
 	# reset()

@@ -51,3 +51,5 @@ def cactus(goal):
 	# TO DO -- TEST OTHER VERSIONS AND METHODS OF SORTING
 	# TO DO - TEST PRESORTING AN ARRAY
 	# TO DO -- Insertion Sort, Shaker Sort, Gnome Sort
+
+cactus(num_items(Items.Cactus) + 1)
