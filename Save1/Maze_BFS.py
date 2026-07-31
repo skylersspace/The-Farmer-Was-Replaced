@@ -49,15 +49,7 @@ def gold_BFS(goal):
 
 	# END RESET
 	# Refreshes each run of the maze, or if drone is in latter half of the route
-	end_map = []
-		# True == Cell in map
-		# False == Cell not in map, default
-	meet_map = []
-		# True == Cell in map
-		# False == Cell not in map, default
-	meet_value = None
-		# The value the map meets at
-		# None == No value, default
+	# ???
 
 	# START RESET
 	# Refreshes each run of the maze, and every time the route needs recalculated
@@ -145,7 +137,7 @@ def gold_BFS(goal):
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 		# Use same amount of substance to reuse maze on treasure
-		# Max reuse 300 times - Need to verify
+		# Max reuse 300 times -> Need to verify
 		# Original value below for reuse == 301
 		weird(substance * reuse)
 	
@@ -153,17 +145,30 @@ def gold_BFS(goal):
 		plant(Entities.Bush)
 		total_reset()
 
+		# Reuse the same maze x times
 		for i in range(reuse):
 			use_item(Items.Weird_Substance,  substance)
 
+			# Get and set initial positions
+			pos = (get_pos_x(), get_pos_y())
 			destination = measure()
+
+			# Full Map Reset
 			full_reset()
 			full_flood()
 
-			# Begin moving, recalculating if potentially shorter route is found
-			pos = (get_pos_x(), get_pos_y())
+			# Generate initial value map
+
+			# Solve current maze
 			while (pos != destination):
 				quick_print()
+				# Begin following value map
+					# Lowest value > Remap if none
+					# Remove from value map when moved to
+
+				
+
+
 
 		harvest()
 	
