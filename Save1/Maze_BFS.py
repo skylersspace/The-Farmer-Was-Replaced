@@ -133,6 +133,8 @@ def gold_BFS(goal):
 	def partial_flood():
 		quick_print()
 
+	def set_wall(pos, dir, value):
+
 	# Maze code
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
@@ -147,17 +149,15 @@ def gold_BFS(goal):
 
 		# Reuse the same maze x times
 		for i in range(reuse):
-			use_item(Items.Weird_Substance,  substance)
+			use_item(Items.Weird_Substance, substance)
 
 			# Get and set initial positions
 			pos = (get_pos_x(), get_pos_y())
 			destination = measure()
 
-			# Full Map Reset
+			# Full Map Reset, generate initial value map
 			full_reset()
 			full_flood()
-
-			# Generate initial value map
 
 			# Solve current maze
 			while (pos != destination):
@@ -165,6 +165,8 @@ def gold_BFS(goal):
 				# Begin following value map
 					# Lowest value > Remap if none
 					# Remove from value map when moved to
+
+				# A
 
 				
 
