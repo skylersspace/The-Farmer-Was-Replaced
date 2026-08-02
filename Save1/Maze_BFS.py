@@ -183,6 +183,7 @@ def gold_BFS(goal):
 
 				# Check for lowest value
 				lowest = None
+				lowest_dir = None
 				for i in range(4):
 					dx, dy = compass[i]["offset"]
 					# Check wall for valid move
@@ -190,13 +191,13 @@ def gold_BFS(goal):
 						continue
 					# Ensure option is in value map
 					if (value_map[x + dx][y + dy] == None):
+						# AI is saying the == should be 'is' instead? May need to revisit this.
 						continue
-					# Check if a value has already been set
-					if (lowest == None):
-						lowest = value_map[x + dx][y + dy]
-						continue
-					# Set lower value
-					lowest = min(lowest, value_map[x + dx][y + dy])
+					# Check and set new value
+					value = value_map[x + dx][y + dy]
+					if (lowest == None) or (lowest < value):
+						lowest = value
+						lowest_dir = i
 
 
 
