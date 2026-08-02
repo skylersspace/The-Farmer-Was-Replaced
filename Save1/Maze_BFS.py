@@ -35,24 +35,24 @@ def gold_BFS(goal):
 	}
 
 	# TOTAL RESET
-	# Wall map is persistent during the entire run
+		# Wall map is persistent during the entire run
 	wall_map = []
 		# True == Can move, default
 		# False == Cannot move
 		# None == Out of bounds
 
 	# FULL RESET
-	# Refreshes each run of the maze
+		# Refreshes each run of the maze
 	move_map = []
 		# True == Cell visited
 		# False == Cell unvisited, default
 
 	# END RESET
-	# Refreshes each run of the maze, or if drone is in latter half of the route
+		# Refreshes each run of the maze, or if drone is in latter half of the route
 	# ???
 
 	# START RESET
-	# Refreshes each run of the maze, and every time the route needs recalculated
+		# Refreshes each run of the maze, and every time the route needs recalculated
 	start_map = []
 		# True == Cell in map
 		# False == Cell not in map, default
@@ -134,6 +134,16 @@ def gold_BFS(goal):
 		quick_print()
 
 	def set_wall(pos, dir, value):
+		# When setting a wall, it needs to set both (N/S, and E/W)
+		if dir not in compass:
+			quick_print("Set Wall: ERROR! Invalid direction provided")
+			return
+		if wall_map[pos[0]][pos[1]][dir] == None:
+			return
+		dx, dy = compass[dir]["offset"]
+
+		wall_map[pos[0]][pos[1]][dir] = value
+		wall_map[pos[0] + dx][pos[1] + dy][compass[dir]["reverse"]] = value
 
 	# Maze code
 	def maze():
@@ -153,6 +163,7 @@ def gold_BFS(goal):
 
 			# Get and set initial positions
 			pos = (get_pos_x(), get_pos_y())
+			x, y = pos
 			destination = measure()
 
 			# Full Map Reset, generate initial value map
@@ -161,7 +172,34 @@ def gold_BFS(goal):
 
 			# Solve current maze
 			while (pos != destination):
-				quick_print()
+				# Wall check
+				if not move_map[x][y]:
+					for i in range(4):
+						wall_value = compass[i]["direction"]
+						if (can_move(wall_value) != wall_map[x][y]):
+							set_wall(pos, wall_value, i)
+					move_map[x][y] = True
+
+
+				# Check for lowest value
+				lowest = None
+				for i in range(4):
+					dx, dy = compass[i]["offset"]
+					# Check wall for valid move
+					if (wall_map[x][y] in (False, None)):
+						continue
+					# Ensure option is in value map
+					if (value_map[x + dx][y + dy] == None):
+						continue
+					# Check if a value has already been set
+					if (lowest == None):
+						lowest = value_map[x + dx][y + dy]
+						continue
+					# Set lower value
+					lowest = min(lowest, value_map[x + dx][y + dy])
+
+
+
 				# Begin following value map
 					# Lowest value > Remap if none
 					# Remove from value map when moved to
