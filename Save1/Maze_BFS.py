@@ -187,7 +187,7 @@ def gold_BFS(goal):
 				for i in range(4):
 					dx, dy = compass[i]["offset"]
 					# Check wall for valid move
-					if (wall_map[x][y] in (False, None)):
+					if (wall_map[x][y][i] in (False, None)):
 						continue
 					# Ensure option is in value map
 					if (value_map[x + dx][y + dy] == None):
