@@ -338,7 +338,6 @@ def gold(goal):
 		quick_print("Finish")	
 		harvest()
 
-
 	def maze():
 		substance = WORLD_SIZE * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 		# Use same amount of substance to reuse maze on treasure

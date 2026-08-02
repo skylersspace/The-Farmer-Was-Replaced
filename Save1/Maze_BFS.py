@@ -199,16 +199,15 @@ def gold_BFS(goal):
 						lowest = value
 						lowest_dir = i
 
+				# If no direction, recalculate. Proceed otherwise
+				if (lowest_dir == None):
+					quick_print("Recalculating")
+					continue
 
-
-				# Begin following value map
-					# Lowest value > Remap if none
-					# Remove from value map when moved to
-
-				# A
-
-				
-
+				move(compass[lowest_dir]["direction"])
+				pos = (get_pos_x(), get_pos_y())
+				x, y = pos
+				value_map[x][y] = None
 
 
 		harvest()
