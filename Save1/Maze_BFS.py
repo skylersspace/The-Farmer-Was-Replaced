@@ -47,13 +47,12 @@ def gold_BFS(goal):
 		# True == Cell visited
 		# False == Cell unvisited, default
 
-	# END RESET
-		# Refreshes each run of the maze, or if drone is in latter half of the route
-	# ???
-
 	# START RESET
 		# Refreshes each run of the maze, and every time the route needs recalculated
 	start_map = []
+		# True == Cell in map
+		# False == Cell not in map, default
+	end_map = []
 		# True == Cell in map
 		# False == Cell not in map, default
 	value_map = []
@@ -67,14 +66,12 @@ def gold_BFS(goal):
 			wall_map.append([])
 			move_map.append([])
 			end_map.append([])
-			meet_map.append([])
 			start_map.append([])
 			value_map.append([])
 			for j in range(WORLD_SIZE):
 				wall_map[i].append([True, True, True, True])
 				move_map[i].append(False)
 				end_map[i].append(False)
-				meet_map[i].append(False)
 				start_map[i].append(False)
 				value_map[i].append(None)
 		# Set wall map edges
@@ -90,47 +87,32 @@ def gold_BFS(goal):
 			wall_map[0][i][3] = None
 
 	def full_reset():
-		meet_value = None
 		for i in range(WORLD_SIZE):
 			move_map.append([])
 			end_map.append([])
-			meet_map.append([])
 			start_map.append([])
 			value_map.append([])
 			for j in range(WORLD_SIZE):
 				move_map[i].append(False)
 				end_map[i].append(False)
-				meet_map[i].append(False)
 				start_map[i].append(False)
 				value_map[i].append(None)
 	
-	def end_reset():
-		meet_value = None
+	def recalc_reset():
 		for i in range(WORLD_SIZE):
 			end_map.append([])
-			meet_map.append([])
 			start_map.append([])
 			value_map.append([])
 			for j in range(WORLD_SIZE):
 				end_map[i].append(False)
-				meet_map[i].append(False)
 				start_map[i].append(False)
-				value_map[i].append(None)
-	
-	def start_reset():
-		for i in range(WORLD_SIZE):
-			start_map.append([])
-			value_map.append([])
-			for j in range(WORLD_SIZE):
-				start_map[i].append(False)
-				value_map[i].append(None) # BUG! This isn't something I want to fully reset
 	
 	# Full flood function
 	def full_flood():
 		quick_print()
 
 	# Partial flood function
-	def partial_flood():
+	def recalc_flood():
 		quick_print()
 
 	def set_wall(pos, dir, value):
@@ -199,15 +181,20 @@ def gold_BFS(goal):
 						lowest = value
 						lowest_dir = i
 
-				# If no direction, recalculate. Proceed otherwise
-				if (lowest_dir == None):
-					quick_print("Recalculating")
+				# If valid direction, proceed
+				if (lowest_dir != None):
+					move(compass[lowest_dir]["direction"])
+					pos = (get_pos_x(), get_pos_y())
+					x, y = pos
+					value_map[x][y] = None
 					continue
 
-				move(compass[lowest_dir]["direction"])
-				pos = (get_pos_x(), get_pos_y())
-				x, y = pos
-				value_map[x][y] = None
+				# No valid path found. Recalculating
+				quick_print("Recalculating")
+				recalc_reset()
+				recalc_flood()
+
+				
 
 
 		harvest()
