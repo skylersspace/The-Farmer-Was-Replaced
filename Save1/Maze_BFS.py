@@ -46,6 +46,9 @@ def gold_BFS(goal):
 	move_map = []
 		# True == Cell visited
 		# False == Cell unvisited, default
+	value_map = []
+		# Contains the distance to the goal
+		# None = No value, default
 
 	# START RESET
 		# Refreshes each run of the maze, and every time the route needs recalculated
@@ -55,9 +58,10 @@ def gold_BFS(goal):
 	end_map = []
 		# True == Cell in map
 		# False == Cell not in map, default
-	value_map = []
-		# Contains the distance to the goal
+	temp_map = []
+		# Contains the distance to the drone, will be reversed
 		# None = No value, default
+
 
 	# Refresh all maps
 	def total_reset():
@@ -67,12 +71,14 @@ def gold_BFS(goal):
 			move_map.append([])
 			end_map.append([])
 			start_map.append([])
+			temp_map.append([])
 			value_map.append([])
 			for j in range(WORLD_SIZE):
 				wall_map[i].append([True, True, True, True])
 				move_map[i].append(False)
 				end_map[i].append(False)
 				start_map[i].append(False)
+				temp_map[i].append(None)
 				value_map[i].append(None)
 		# Set wall map edges
 		max_map = WORLD_SIZE - 1
@@ -86,30 +92,96 @@ def gold_BFS(goal):
 			# West
 			wall_map[0][i][3] = None
 
+	# Refresh move, start, end, temp, and value maps
 	def full_reset():
 		for i in range(WORLD_SIZE):
 			move_map.append([])
-			end_map.append([])
 			start_map.append([])
+			end_map.append([])
+			temp_map.append([])
 			value_map.append([])
 			for j in range(WORLD_SIZE):
 				move_map[i].append(False)
-				end_map[i].append(False)
 				start_map[i].append(False)
+				end_map[i].append(False)
+				temp_map[i].append(None)
 				value_map[i].append(None)
 	
+	# Refresh start, end, and temp maps
 	def recalc_reset():
 		for i in range(WORLD_SIZE):
 			end_map.append([])
 			start_map.append([])
+			temp_map.append([])
 			value_map.append([])
 			for j in range(WORLD_SIZE):
 				end_map[i].append(False)
 				start_map[i].append(False)
+				temp_map[i].append(None)
 	
 	# Full flood function
-	def full_flood():
-		quick_print()
+	def full_flood(start, end):
+		x1, y1 = start
+		x2, y2 = end
+
+		temp_map[x1][y1] = 0
+		value_map[x2][y2] = 0
+
+		start_map[x1][y1] = True
+		end_map[x2][y2] = True
+
+		start_queue = [start]
+		end_queue = [end]
+
+		junction = None
+		while (junction != None):
+			start_curr = start_queue.pop(0)
+			end_curr = end_queue.pop(0)
+			x1, y1 = start_curr
+			x2, y2 = end_curr
+			value_curr_start = start_map[x1][y1]
+			value_curr_end = end_map[x2][y2]
+
+			for i in compass:
+				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
+				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
+
+				# Check for junction, bias towards drone
+				if (end_map[dx1][dy1]):
+					junction = (x1, y1)
+					break
+				if (start_map[dx2][dy2]):
+					junction = (dx2, dy2)
+					break
+
+				# Check for possible, unmapped movement
+				if ((wall_map[x1][y1][i] in (False, None)) and (start_map[dx1][dy1] == False)):
+					start_queue.append((dx1, dy1))
+					temp_map[dx1][dy1] = value_curr_start + 1
+				if ((wall_map[x2][y2][i] in (False, None)) and (end_map[dx2][dy2] == False)):
+					start_queue.append((dx2, dy2))
+					temp_map[dx2][dy2] = value_curr_end + 1		
+
+		# Reverse the start map to point to the end
+		start_queue = [junction]
+		while (len(start_queue > 0)):
+			current = start_queue.pop(0)
+			x, y = current
+			curr_value = value_map[x][y]
+
+			for i in compass:
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+
+				# Check for drone location
+				if (current == start):
+					start_queue = []
+					break
+
+				# Check for possible movement within start map
+				if ((wall_map[x2][y2][i] in (False, None)) and (start_map[dx][dy] == True)):
+					start_queue.append((dx, dy))
+					value_map = curr_value + 1
+
 
 	# Partial flood function
 	def recalc_flood():
@@ -150,7 +222,7 @@ def gold_BFS(goal):
 
 			# Full Map Reset, generate initial value map
 			full_reset()
-			full_flood()
+			full_flood(pos, destination)
 
 			# Solve current maze
 			while (pos != destination):
@@ -190,7 +262,6 @@ def gold_BFS(goal):
 					continue
 
 				# No valid path found. Recalculating
-				quick_print("Recalculating")
 				recalc_reset()
 				recalc_flood()
 
