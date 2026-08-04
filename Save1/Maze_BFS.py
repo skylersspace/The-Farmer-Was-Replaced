@@ -63,61 +63,50 @@ def gold_BFS(goal):
 		# None = No value, default
 
 
-	# Refresh all maps
-	def total_reset():
-		meet_value = None
-		for i in range(WORLD_SIZE):
-			wall_map.append([])
-			move_map.append([])
-			end_map.append([])
-			start_map.append([])
-			temp_map.append([])
-			value_map.append([])
-			for j in range(WORLD_SIZE):
-				wall_map[i].append([True, True, True, True])
-				move_map[i].append(False)
-				end_map[i].append(False)
-				start_map[i].append(False)
-				temp_map[i].append(None)
-				value_map[i].append(None)
-		# Set wall map edges
-		max_map = WORLD_SIZE - 1
-		for i in range(WORLD_SIZE):
-			# North
-			wall_map[i][max_map][0] = None
-			# East
-			wall_map[max_map][i][1] = None
-			# South
-			wall_map[i][0][2] = None
-			# West
-			wall_map[0][i][3] = None
+	# Generate all maps
+	for i in range(WORLD_SIZE):
+		wall_map.append([])
+		move_map.append([])
+		end_map.append([])
+		start_map.append([])
+		temp_map.append([])
+		value_map.append([])
+		for j in range(WORLD_SIZE):
+			wall_map[i].append([True, True, True, True])
+			move_map[i].append(False)
+			end_map[i].append(False)
+			start_map[i].append(False)
+			temp_map[i].append(None)
+			value_map[i].append(None)
+	# Set wall map edges
+	max_map = WORLD_SIZE - 1
+	for i in range(WORLD_SIZE):
+		# North
+		wall_map[i][max_map][0] = None
+		# East
+		wall_map[max_map][i][1] = None
+		# South
+		wall_map[i][0][2] = None
+		# West
+		wall_map[0][i][3] = None
 
 	# Refresh move, start, end, temp, and value maps
 	def full_reset():
 		for i in range(WORLD_SIZE):
-			move_map.append([])
-			start_map.append([])
-			end_map.append([])
-			temp_map.append([])
-			value_map.append([])
 			for j in range(WORLD_SIZE):
-				move_map[i].append(False)
-				start_map[i].append(False)
-				end_map[i].append(False)
-				temp_map[i].append(None)
-				value_map[i].append(None)
+				move_map[i][j] = False
+				start_map[i][j] = False
+				end_map[i][j] = False
+				temp_map[i][j] = None
+				value_map[i][j] = None
 	
 	# Refresh start, end, and temp maps
 	def recalc_reset():
 		for i in range(WORLD_SIZE):
-			end_map.append([])
-			start_map.append([])
-			temp_map.append([])
-			value_map.append([])
 			for j in range(WORLD_SIZE):
-				end_map[i].append(False)
-				start_map[i].append(False)
-				temp_map[i].append(None)
+				start_map[i][j] = False
+				end_map[i][j] = False
+				temp_map[i][j] = None
 	
 	# Full flood function
 	def full_flood(start, end):
@@ -134,13 +123,13 @@ def gold_BFS(goal):
 		end_queue = [end]
 
 		junction = None
-		while (junction != None):
+		while (junction == None):
 			start_curr = start_queue.pop(0)
 			end_curr = end_queue.pop(0)
 			x1, y1 = start_curr
 			x2, y2 = end_curr
-			value_curr_start = start_map[x1][y1]
-			value_curr_end = end_map[x2][y2]
+			value_curr_start = temp_map[x1][y1]
+			value_curr_end = value_map[x2][y2]
 
 			for i in compass:
 				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
@@ -155,16 +144,18 @@ def gold_BFS(goal):
 					break
 
 				# Check for possible, unmapped movement
-				if ((wall_map[x1][y1][i] in (False, None)) and (start_map[dx1][dy1] == False)):
+				if ((wall_map[x1][y1][i] not in (False, None)) and (start_map[dx1][dy1] == False)):
 					start_queue.append((dx1, dy1))
 					temp_map[dx1][dy1] = value_curr_start + 1
-				if ((wall_map[x2][y2][i] in (False, None)) and (end_map[dx2][dy2] == False)):
-					start_queue.append((dx2, dy2))
-					temp_map[dx2][dy2] = value_curr_end + 1		
+					start_map[dx1][dy1] = True
+				if ((wall_map[x2][y2][i] not in (False, None)) and (end_map[dx2][dy2] == False)):
+					end_queue.append((dx2, dy2))
+					value_map[dx2][dy2] = value_curr_end + 1
+					end_map[dx2][dy2] = True
 
 		# Reverse the start map to point to the end
 		start_queue = [junction]
-		while (len(start_queue > 0)):
+		while (len(start_queue) > 0):
 			current = start_queue.pop(0)
 			x, y = current
 			curr_value = value_map[x][y]
@@ -178,9 +169,11 @@ def gold_BFS(goal):
 					break
 
 				# Check for possible movement within start map
-				if ((wall_map[x2][y2][i] in (False, None)) and (start_map[dx][dy] == True)):
+				if (wall_map[x][y][i] in (False, None)):
+					continue
+				if (start_map[dx][dy] == True):
 					start_queue.append((dx, dy))
-					value_map = curr_value + 1
+					value_map[dx][dy] = curr_value + 1
 
 
 	# Partial flood function
@@ -229,9 +222,9 @@ def gold_BFS(goal):
 				# Wall check
 				if not move_map[x][y]:
 					for i in range(4):
-						wall_value = compass[i]["direction"]
-						if (can_move(wall_value) != wall_map[x][y]):
-							set_wall(pos, wall_value, i)
+						wall_value = can_move(compass[i]["direction"])
+						if (wall_value != wall_map[x][y][i]):
+							set_wall(pos, i, wall_value)
 					move_map[x][y] = True
 
 
@@ -249,7 +242,7 @@ def gold_BFS(goal):
 						continue
 					# Check and set new value
 					value = value_map[x + dx][y + dy]
-					if (lowest == None) or (lowest < value):
+					if (lowest == None) or (lowest > value):
 						lowest = value
 						lowest_dir = i
 
