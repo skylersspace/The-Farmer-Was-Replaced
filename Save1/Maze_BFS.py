@@ -145,23 +145,24 @@ def gold_BFS(goal):
 				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
 				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
 
-				# BUG! The junction check needs to be moved after the wall check
-				# Check for junction, bias towards destination
-				if (end_map[dx1][dy1]):
-					junction = (dx1, dy1)
-					break
-				if (start_map[dx2][dy2]):
-					junction = (x2, y2)
-					break
-
-				# Check for possible, unmapped movement
-				if ((wall_map[x1][y1][i] not in (False, None)) and (start_map[dx1][dy1] == False)):
-					start_queue.append((dx1, dy1))
-					start_map[dx1][dy1] = True
-				if ((wall_map[x2][y2][i] not in (False, None)) and (end_map[dx2][dy2] == False)):
-					end_queue.append((dx2, dy2))
-					value_map[dx2][dy2] = value_curr_end + 1
-					end_map[dx2][dy2] = True
+				# Check for possible movement, then possible junction, then map if present
+				# Goal side
+				if (wall_map[x2][y2][i] not in (False, None)):
+					if (start_map[dx2][dy2]):
+						junction = (x2, y2)
+						break
+					if (not end_map[dx2][dy2]):
+						end_queue.append((dx2, dy2))
+						value_map[dx2][dy2] = value_curr_end + 1
+						end_map[dx2][dy2] = True
+				# Drone side
+				if (wall_map[x1][y1][i] not in (False, None)):
+					if (end_map[dx1][dy1]):
+						junction = (dx1, dy1)
+						break
+					if (not start_map[dx1][dy1]):
+						start_queue.append((dx1, dy1))
+						start_map[dx1][dy1] = True
 
 		# Reverse the start map to point to the end
 		start_queue = [junction]
@@ -232,22 +233,24 @@ def gold_BFS(goal):
 				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
 				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
 
-				# Check for junction, bias towards destination
-				if (end_map[dx1][dy1]):
-					junction = (dx1, dy1)
-					break
-				if (start_map[dx2][dy2]):
-					junction = (x2, y2)
-					break
-
-				# Check for possible, unmapped movement
-				if ((wall_map[x1][y1][i] not in (False, None)) and (start_map[dx1][dy1] == False)):
-					start_queue.append((dx1, dy1))
-					start_map[dx1][dy1] = True
-				if ((wall_map[x2][y2][i] not in (False, None)) and (end_map[dx2][dy2] == False)):
-					end_queue.append((dx2, dy2))
-					value_map[dx2][dy2] = value_curr_end + 1
-					end_map[dx2][dy2] = True
+				# Check for possible movement, then possible junction, then map if present
+				# Goal side
+				if (wall_map[x2][y2][i] not in (False, None)):
+					if (start_map[dx2][dy2]):
+						junction = (x2, y2)
+						break
+					if (not end_map[dx2][dy2]):
+						end_queue.append((dx2, dy2))
+						value_map[dx2][dy2] = value_curr_end + 1
+						end_map[dx2][dy2] = True
+				# Drone side
+				if (wall_map[x1][y1][i] not in (False, None)):
+					if (end_map[dx1][dy1]):
+						junction = (dx1, dy1)
+						break
+					if (not start_map[dx1][dy1]):
+						start_queue.append((dx1, dy1))
+						start_map[dx1][dy1] = True
 
 		# Reverse the start map to point to the end
 		start_queue = [junction]
