@@ -145,6 +145,7 @@ def gold_BFS(goal):
 				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
 				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
 
+				# BUG! The junction check needs to be moved after the wall check
 				# Check for junction, bias towards destination
 				if (end_map[dx1][dy1]):
 					junction = (dx1, dy1)
