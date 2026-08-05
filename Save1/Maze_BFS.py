@@ -59,7 +59,6 @@ def gold_BFS(goal):
 		# True == Cell in map
 		# False == Cell not in map, default
 
-
 	# Generate all maps
 	for i in range(WORLD_SIZE):
 		wall_map.append([])
@@ -105,7 +104,7 @@ def gold_BFS(goal):
 			# West
 			wall_map[0][i][3] = None
 
-	# Refresh move, start, end, temp, and value maps
+	# Refresh move, start, end, and value maps
 	def full_reset():
 		for i in range(WORLD_SIZE):
 			for j in range(WORLD_SIZE):
@@ -114,7 +113,7 @@ def gold_BFS(goal):
 				end_map[i][j] = False
 				value_map[i][j] = None
 	
-	# Refresh start, end, and temp maps
+	# Refresh start and end map
 	def recalc_reset():
 		for i in range(WORLD_SIZE):
 			for j in range(WORLD_SIZE):
@@ -184,10 +183,92 @@ def gold_BFS(goal):
 					start_queue.append((dx, dy))
 					value_map[dx][dy] = curr_value + 1
 
-
 	# Partial flood function
-	def recalc_flood():
-		quick_print()
+	def recalc_flood(start, end):
+		recalc_reset()
+		end_queue = []
+		end_map[end[0]][end[1]] = True
+
+		queue = [end]
+		while (len(queue) > 0):
+			current = queue.pop(0)
+			x, y = (current[0], current[1])
+
+			for i in compass:
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+
+				# Check for valid movement option
+				if (wall_map[x][y][i] in (None, False)):
+					continue
+				# Check if already in end map, add if not
+				if (end_map[dx][dy]):
+					continue
+				end_map[dx][dy] = True
+				# If there's already a value, add to queue. If a border value, queue for later propagation
+				if (value_map[dx][dy] != None):
+					queue.append((dx, dy))
+				else:
+					end_queue.append((dx, dy))
+					value_map[dx][dy] = value_map[x][y] + 1
+
+		# Begin bidirectional flood
+		x1, y1 = start
+		x2, y2 = end
+
+		start_map[x1][y1] = True
+
+		start_queue = [start]
+
+		junction = None
+		while (junction == None):
+			start_curr = start_queue.pop(0)
+			end_curr = end_queue.pop(0)
+			x1, y1 = start_curr
+			x2, y2 = end_curr
+			value_curr_end = value_map[x2][y2]
+
+			for i in compass:
+				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
+				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
+
+				# Check for junction, bias towards destination
+				if (end_map[dx1][dy1]):
+					junction = (dx1, dy1)
+					break
+				if (start_map[dx2][dy2]):
+					junction = (x2, y2)
+					break
+
+				# Check for possible, unmapped movement
+				if ((wall_map[x1][y1][i] not in (False, None)) and (start_map[dx1][dy1] == False)):
+					start_queue.append((dx1, dy1))
+					start_map[dx1][dy1] = True
+				if ((wall_map[x2][y2][i] not in (False, None)) and (end_map[dx2][dy2] == False)):
+					end_queue.append((dx2, dy2))
+					value_map[dx2][dy2] = value_curr_end + 1
+					end_map[dx2][dy2] = True
+
+		# Reverse the start map to point to the end
+		start_queue = [junction]
+		while (len(start_queue) > 0):
+			current = start_queue.pop(0)
+			x, y = current
+			curr_value = value_map[x][y]
+
+			for i in compass:
+				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
+
+				# Check for possible movement within start map
+				if (wall_map[x][y][i] in (False, None)):
+					continue
+				# Check for drone location
+				if ((dx, dy) == start):
+					start_queue = []
+					break
+				if (start_map[dx][dy] == True):
+					start_queue.append((dx, dy))
+					value_map[dx][dy] = curr_value + 1
+
 
 	def set_wall(pos, dir, value):
 		# When setting a wall, it needs to set both (N/S, and E/W)
@@ -236,7 +317,6 @@ def gold_BFS(goal):
 							set_wall(pos, i, wall_value)
 					move_map[x][y] = True
 
-
 				# Check for lowest value
 				lowest = None
 				lowest_dir = None
@@ -265,15 +345,10 @@ def gold_BFS(goal):
 					continue
 
 				# No valid path found. Recalculating
-				recalc_reset()
-				recalc_flood()
-
-				
-
+				recalc_flood(pos, destination)
 
 		harvest()
 	
-
 	while (num_items(Items.Gold) < goal):
 		maze()
 
