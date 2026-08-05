@@ -90,6 +90,27 @@ def gold_BFS(goal):
 		# West
 		wall_map[0][i][3] = None
 
+	# Reset all maps
+	def total_reset():
+		for i in range(WORLD_SIZE):
+			for j in range(WORLD_SIZE):
+				wall_map[i][j] = [True, True, True, True]
+				move_map[i][j] = False
+				start_map[i][j] = False
+				end_map[i][j] = False
+				temp_map[i][j] = None
+				value_map[i][j] = None
+		# Set wall map edges
+		for i in range(WORLD_SIZE):
+			# North
+			wall_map[i][max_map][0] = None
+			# East
+			wall_map[max_map][i][1] = None
+			# South
+			wall_map[i][0][2] = None
+			# West
+			wall_map[0][i][3] = None
+
 	# Refresh move, start, end, temp, and value maps
 	def full_reset():
 		for i in range(WORLD_SIZE):
