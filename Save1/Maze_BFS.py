@@ -58,9 +58,6 @@ def gold_BFS(goal):
 	end_map = []
 		# True == Cell in map
 		# False == Cell not in map, default
-	temp_map = []
-		# Contains the distance to the drone, will be reversed
-		# None = No value, default
 
 
 	# Generate all maps
@@ -69,14 +66,12 @@ def gold_BFS(goal):
 		move_map.append([])
 		end_map.append([])
 		start_map.append([])
-		temp_map.append([])
 		value_map.append([])
 		for j in range(WORLD_SIZE):
 			wall_map[i].append([True, True, True, True])
 			move_map[i].append(False)
 			end_map[i].append(False)
 			start_map[i].append(False)
-			temp_map[i].append(None)
 			value_map[i].append(None)
 	# Set wall map edges
 	max_map = WORLD_SIZE - 1
@@ -98,7 +93,6 @@ def gold_BFS(goal):
 				move_map[i][j] = False
 				start_map[i][j] = False
 				end_map[i][j] = False
-				temp_map[i][j] = None
 				value_map[i][j] = None
 		# Set wall map edges
 		for i in range(WORLD_SIZE):
@@ -118,7 +112,6 @@ def gold_BFS(goal):
 				move_map[i][j] = False
 				start_map[i][j] = False
 				end_map[i][j] = False
-				temp_map[i][j] = None
 				value_map[i][j] = None
 	
 	# Refresh start, end, and temp maps
@@ -127,14 +120,12 @@ def gold_BFS(goal):
 			for j in range(WORLD_SIZE):
 				start_map[i][j] = False
 				end_map[i][j] = False
-				temp_map[i][j] = None
 	
 	# Full flood function
 	def full_flood(start, end):
 		x1, y1 = start
 		x2, y2 = end
 
-		temp_map[x1][y1] = 0
 		value_map[x2][y2] = 0
 
 		start_map[x1][y1] = True
@@ -149,25 +140,23 @@ def gold_BFS(goal):
 			end_curr = end_queue.pop(0)
 			x1, y1 = start_curr
 			x2, y2 = end_curr
-			value_curr_start = temp_map[x1][y1]
 			value_curr_end = value_map[x2][y2]
 
 			for i in compass:
 				dx1, dy1 = (x1 + compass[i]["offset"][0], y1 + compass[i]["offset"][1])
 				dx2, dy2 = (x2 + compass[i]["offset"][0], y2 + compass[i]["offset"][1])
 
-				# Check for junction, bias towards drone
+				# Check for junction, bias towards destination
 				if (end_map[dx1][dy1]):
-					junction = (x1, y1)
+					junction = (dx1, dy1)
 					break
 				if (start_map[dx2][dy2]):
-					junction = (dx2, dy2)
+					junction = (x2, y2)
 					break
 
 				# Check for possible, unmapped movement
 				if ((wall_map[x1][y1][i] not in (False, None)) and (start_map[dx1][dy1] == False)):
 					start_queue.append((dx1, dy1))
-					temp_map[dx1][dy1] = value_curr_start + 1
 					start_map[dx1][dy1] = True
 				if ((wall_map[x2][y2][i] not in (False, None)) and (end_map[dx2][dy2] == False)):
 					end_queue.append((dx2, dy2))
@@ -184,14 +173,13 @@ def gold_BFS(goal):
 			for i in compass:
 				dx, dy = (x + compass[i]["offset"][0], y + compass[i]["offset"][1])
 
-				# Check for drone location
-				if (current == start):
-					start_queue = []
-					break
-
 				# Check for possible movement within start map
 				if (wall_map[x][y][i] in (False, None)):
 					continue
+				# Check for drone location
+				if ((dx, dy) == start):
+					start_queue = []
+					break
 				if (start_map[dx][dy] == True):
 					start_queue.append((dx, dy))
 					value_map[dx][dy] = curr_value + 1
@@ -273,6 +261,7 @@ def gold_BFS(goal):
 					pos = (get_pos_x(), get_pos_y())
 					x, y = pos
 					value_map[x][y] = None
+					end_map[x][y] = False
 					continue
 
 				# No valid path found. Recalculating
