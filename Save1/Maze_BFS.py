@@ -1,11 +1,15 @@
 from Utility import *
 from Weird import *
 
-reuse = 1
+# 301 worked fine
+reuse = 300
 
 def gold_BFS(goal):
+	quick_print("BFS Maze function called")
+
 	# Ensure a run is required before continuing
 	if (num_items(Items.Gold) > goal):
+		quick_print("Goal already met, exiting")
 		return
 
 	WORLD_SIZE = get_world_size()
@@ -122,6 +126,8 @@ def gold_BFS(goal):
 	
 	# Full flood function
 	def full_flood(start, end):
+		full_reset()
+
 		x1, y1 = start
 		x2, y2 = end
 
@@ -134,7 +140,9 @@ def gold_BFS(goal):
 		end_queue = [end]
 
 		junction = None
+		# quick_print("Beginning initial flood")
 		while (junction == None):
+			# quick_print("Start:", len(start_queue), "End:", len(end_queue))
 			start_curr = start_queue.pop(0)
 			end_curr = end_queue.pop(0)
 			x1, y1 = start_curr
@@ -165,8 +173,10 @@ def gold_BFS(goal):
 						start_map[dx1][dy1] = True
 
 		# Reverse the start map to point to the end
+		# quick_print("Junction found:", junction)
 		start_queue = [junction]
 		while (len(start_queue) > 0):
+			# quick_print("Current queue:", len(start_queue))
 			current = start_queue.pop(0)
 			x, y = current
 			curr_value = value_map[x][y]
@@ -183,6 +193,7 @@ def gold_BFS(goal):
 					break
 				if (start_map[dx][dy] == True):
 					start_queue.append((dx, dy))
+					start_map[dx][dy] = False
 					value_map[dx][dy] = curr_value + 1
 
 	# Partial flood function
@@ -192,6 +203,7 @@ def gold_BFS(goal):
 		end_map[end[0]][end[1]] = True
 
 		queue = [end]
+		
 		while (len(queue) > 0):
 			current = queue.pop(0)
 			x, y = (current[0], current[1])
@@ -222,6 +234,7 @@ def gold_BFS(goal):
 		start_queue = [start]
 
 		junction = None
+		# quick_print("Beginning initial flood")
 		while (junction == None):
 			start_curr = start_queue.pop(0)
 			end_curr = end_queue.pop(0)
@@ -254,6 +267,7 @@ def gold_BFS(goal):
 
 		# Reverse the start map to point to the end
 		start_queue = [junction]
+		# quick_print("Junction found:", junction)
 		while (len(start_queue) > 0):
 			current = start_queue.pop(0)
 			x, y = current
@@ -271,8 +285,8 @@ def gold_BFS(goal):
 					break
 				if (start_map[dx][dy] == True):
 					start_queue.append((dx, dy))
+					start_map[dx][dy] = False
 					value_map[dx][dy] = curr_value + 1
-
 
 	def set_wall(pos, dir, value):
 		# When setting a wall, it needs to set both (N/S, and E/W)
@@ -281,6 +295,7 @@ def gold_BFS(goal):
 			return
 		if wall_map[pos[0]][pos[1]][dir] == None:
 			return
+		quick_print("- - - Updating wall")
 		dx, dy = compass[dir]["offset"]
 
 		wall_map[pos[0]][pos[1]][dir] = value
@@ -297,9 +312,11 @@ def gold_BFS(goal):
 		# Spawn the maze, reset maps
 		plant(Entities.Bush)
 		total_reset()
+		quick_print("- Initial maze generation")
 
 		# Reuse the same maze x times
 		for i in range(reuse):
+			quick_print("- - Iteration", i + 1)
 			use_item(Items.Weird_Substance, substance)
 
 			# Get and set initial positions
@@ -308,11 +325,13 @@ def gold_BFS(goal):
 			destination = measure()
 
 			# Full Map Reset, generate initial value map
-			full_reset()
+			quick_print("- - - Full flood:", pos, "to", destination)
 			full_flood(pos, destination)
 
 			# Solve current maze
+			quick_print("- - - Begin solving")
 			while (pos != destination):
+				# quick_print("Current position:", pos)
 				# Wall check
 				if not move_map[x][y]:
 					for i in range(4):
@@ -349,11 +368,16 @@ def gold_BFS(goal):
 					continue
 
 				# No valid path found. Recalculating
+				quick_print("- - - - No movement available, recalculating")
 				recalc_flood(pos, destination)
 
 		harvest()
 	
 	while (num_items(Items.Gold) < goal):
+		quick_print("Main loop")
 		maze()
 
+	quick_print("Main loop exited")
+
+quick_print("Raw BFS maze function called")
 gold_BFS(num_items(Items.Gold) + 1)
